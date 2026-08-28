@@ -1,0 +1,170 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.settings">Settings</h2>
+    <span class="view-sub" data-i18n="settings.subtitle">this browser's preferences + dashboard login</span>
+  </header>
+
+  <section class="panel settings-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.language.title">Language</h3>
+      <span class="settings-panel-hint" data-i18n="settings.language.hint">affects this browser's interface</span>
+    </div>
+    <div class="job-form-row">
+      <select id="language-select">
+        <option value="pt">Português</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="panel settings-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.cards.title">Overview cards</h3>
+      <span class="settings-panel-hint" data-i18n="settings.cards.hint">saved in this browser · all on by default</span>
+    </div>
+    <div class="settings-toggle-list">
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="cpu" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--cpu"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="common.cpu">CPU</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descCpu">processor usage, history and processes</span>
+        </span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="temp" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--temp"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="common.temperature">Temperature</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descTemp">chip temperature</span>
+        </span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="mem" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--mem"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="common.ram">RAM</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descMem">memory used, history and processes</span>
+        </span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="uptime" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--uptime"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="common.uptime">Uptime</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descUptime">time since last boot</span>
+        </span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="network" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--network"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="overview.network.title">Traffic</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descNetwork">real host download/upload, by interface</span>
+        </span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" data-toggle-card="internet" checked class="switch-input">
+        <span class="switch"></span>
+        <span class="settings-toggle-dot settings-toggle-dot--internet"></span>
+        <span class="settings-toggle-label">
+          <span class="settings-toggle-title" data-i18n="overview.internet.title">Internet</span>
+          <span class="settings-toggle-desc" data-i18n="settings.cards.descInternet">connectivity and connection quality (latency, loss)</span>
+        </span>
+      </label>
+    </div>
+  </section>
+
+  <section class="panel settings-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.login.title">Login</h3>
+      <span class="settings-panel-hint" data-i18n="settings.login.hint">changing this signs out every open session</span>
+    </div>
+    <form id="credentials-form" class="job-form">
+      <div class="job-form-row">
+        <input type="password" id="cred-current-password" data-i18n-placeholder="settings.login.currentPasswordPlaceholder" placeholder="current password" autocomplete="current-password" required>
+      </div>
+      <div class="job-form-row">
+        <input type="text" id="cred-new-username" data-i18n-placeholder="settings.login.newUsernamePlaceholder" placeholder="new username" autocomplete="username" required>
+        <input type="password" id="cred-new-password" data-i18n-placeholder="settings.login.newPasswordPlaceholder" placeholder="new password (min. 8 characters)" autocomplete="new-password" required minlength="8">
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" data-i18n="settings.login.submitBtn">Save and sign out</button>
+      </div>
+    </form>
+    <div id="credentials-error" class="banner-error hidden"></div>
+  </section>
+
+  <section class="panel settings-panel" id="notifications-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.notif.title">Notifications (Telegram)</h3>
+      <span class="settings-panel-hint" data-i18n="settings.notif.hint">the bot token is never shown again after it's saved</span>
+    </div>
+
+    <div id="notif-bot-status" class="job-status-row hidden">
+      <span class="state-badge state-running" data-i18n="settings.notif.botConnected">bot connected</span>
+      <span class="card-sub" id="notif-bot-username">@...</span>
+      <button type="button" class="btn btn-secondary" id="notif-bot-change-btn" data-i18n="settings.notif.changeTokenBtn">Change token</button>
+      <button type="button" class="btn btn-remove" id="notif-bot-remove-btn" data-i18n="common.remove">Remove</button>
+    </div>
+
+    <form id="notif-bot-form" class="job-form hidden">
+      <div class="login-field">
+        <label class="login-field-label" for="notif-bot-token" data-i18n="settings.notif.tokenLabel">Bot token (talk to @BotFather on Telegram)</label>
+        <div class="login-password-row">
+          <input type="password" id="notif-bot-token" data-i18n-placeholder="settings.notif.tokenPlaceholder" placeholder="123456789:AAExampleToken" autocomplete="off" required>
+          <button type="button" class="login-reveal-btn" id="notif-bot-reveal-btn" data-i18n="common.show">show</button>
+        </div>
+      </div>
+      <div class="login-field">
+        <label class="login-field-label" for="notif-bot-password" data-i18n="settings.notif.passwordLabel">Current dashboard password</label>
+        <input type="password" id="notif-bot-password" autocomplete="current-password" required>
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" data-i18n="settings.notif.saveBtn">Save bot</button>
+        <button type="button" class="btn btn-secondary hidden" id="notif-bot-cancel-btn" data-i18n="common.cancel">cancel</button>
+      </div>
+    </form>
+    <div id="notif-bot-error" class="banner-error hidden"></div>
+
+    <div class="settings-panel-hint" style="margin-top: 14px; margin-bottom: 4px;" data-i18n="settings.notif.routesHint">routes by event type</div>
+    <div id="notif-routes-list">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>
+
+  <section class="panel settings-panel" id="self-backup-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.selfBackup.title">Dashboard backup</h3>
+      <span class="settings-panel-hint" data-i18n="settings.selfBackup.hint">snapshot of the dashboard's own database (jobs, uptime targets, Telegram config, login)</span>
+    </div>
+    <div class="job-form-row">
+      <button type="button" class="btn btn-start" id="self-backup-now-btn" data-i18n="docker.compose.backupNow">Back up now</button>
+      <button type="button" class="btn btn-secondary" id="self-backup-view-btn" data-i18n="docker.compose.viewBackups">View backups</button>
+    </div>
+    <div id="self-backup-list" class="backups-list hidden"></div>
+  </section>
+
+  <section class="panel settings-panel" id="sessions-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.sessions.title">Active sessions</h3>
+      <span class="settings-panel-hint" data-i18n="settings.sessions.hint">every login that hasn't expired or been revoked yet</span>
+    </div>
+    <div id="sessions-list">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>
+
+  <section class="panel settings-panel" id="audit-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.audit.title">Audit log</h3>
+      <span class="settings-panel-hint" data-i18n="settings.audit.hint">what and when - login is a single user, there's no way to tell who</span>
+    </div>
+    <div id="audit-list">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>

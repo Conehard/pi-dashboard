@@ -1,0 +1,22 @@
+# Host-specific secrets - copy .env.example to .env and fill in real
+# values for your own host, never commit the result.
+.env
+
+# Generated/owned by the docker-compose management UI at runtime
+# (features/compose/registry.js) - holds real absolute host paths specific
+# to whatever this dashboard has registered on THIS machine. Must exist
+# (even empty) before the first `docker compose up` - see INSTALL.md.
+docker-compose.override.yml
+
+# Status exporters the host-status/check-*.py scripts write periodically -
+# regenerated on their own schedule, nothing to track.
+host-status/*.json
+host-status/*.log
+
+node_modules/
+
+# Tailwind's generated output (web/src/input.css is the real source) -
+# the web/Dockerfile builds this fresh at image-build time, so a locally
+# built copy has no reason to be committed and would just go stale.
+web/style.css
+.claude/settings.local.json

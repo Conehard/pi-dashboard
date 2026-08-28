@@ -1,0 +1,206 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.overview">Overview</h2>
+    <span class="view-sub" data-i18n="overview.subtitle">updates every 2s · read-only</span>
+  </header>
+
+  <section class="cards-grid">
+    <button type="button" class="card card--cpu card--clickable" data-card="cpu" id="card-cpu">
+      <div class="card-title" data-i18n="common.cpu">CPU</div>
+      <div class="card-value"><span id="cpu-percent">--</span><span class="unit">%</span></div>
+      <div class="card-sub"><span id="cpu-cores">--</span><span data-i18n="overview.cpu.coresSuffix"> cores · click to view processes</span></div>
+      <canvas id="chart-cpu" class="sparkline" height="40"></canvas>
+    </button>
+
+    <div class="card card--temp" data-card="temp">
+      <div class="card-title" data-i18n="common.temperature">Temperature</div>
+      <div class="card-value"><span id="temp-value">--</span><span class="unit">°C</span></div>
+      <div class="card-sub" id="temp-sub">&nbsp;</div>
+      <canvas id="chart-temp" class="sparkline" height="40"></canvas>
+    </div>
+
+    <button type="button" class="card card--mem card--clickable" data-card="mem" id="card-mem">
+      <div class="card-title" data-i18n="common.ram">RAM</div>
+      <div class="card-value"><span id="mem-percent">--</span><span class="unit">%</span></div>
+      <div class="card-sub"><span id="mem-used">--</span> / <span id="mem-total">--</span><span data-i18n="overview.mem.suffix"> · click to view processes</span></div>
+      <canvas id="chart-mem" class="sparkline" height="40"></canvas>
+    </button>
+
+    <div class="card card--uptime" data-card="uptime">
+      <div class="card-title" data-i18n="common.uptime">Uptime</div>
+      <div class="card-value uptime-value">
+        <span id="uptime-days">--</span><span class="unit">d</span>
+        <span id="uptime-hours">--</span><span class="unit">h</span>
+        <span id="uptime-minutes">--</span><span class="unit">m</span>
+      </div>
+      <div class="card-sub" data-i18n="overview.uptime.subtitle">since last boot</div>
+    </div>
+
+    <button type="button" class="card card--network card--clickable" data-card="network" id="card-network">
+      <div class="card-title" data-i18n="overview.network.title">Traffic</div>
+      <div class="card-value card-value--network">
+        <span class="net-arrow">↓</span><span id="net-rx">--</span>
+      </div>
+      <div class="card-sub"><span class="net-arrow">↑</span><span id="net-tx">--</span><span data-i18n="overview.network.suffix"> · click to view by interface</span></div>
+    </button>
+
+    <button type="button" class="card card--internet card--clickable" data-card="internet" id="card-internet">
+      <div class="card-title" data-i18n="overview.internet.title">Internet</div>
+      <div class="card-value"><span id="internet-ping">--</span><span class="unit">ms</span></div>
+      <div class="card-sub">
+        <span data-i18n="overview.internet.lossLabel">loss</span> <span id="internet-loss">--</span>%
+        · <span class="net-arrow">↓</span><span id="internet-down">--</span>
+        <span class="net-arrow">↑</span><span id="internet-up">--</span> Mbps
+        <span data-i18n="overview.internet.detailsSuffix"> · click for more</span>
+      </div>
+    </button>
+
+    <div class="card card--tunnel hidden" id="card-tunnel">
+      <div class="card-title" data-i18n="overview.tunnel.title">Tunnel</div>
+      <div class="card-value card-value--network" id="tunnel-state">--</div>
+      <div class="card-sub" id="tunnel-sub">&nbsp;</div>
+    </div>
+
+    <div class="card card--tunnel hidden" id="card-tailscale">
+      <div class="card-title">Tailscale</div>
+      <div class="card-value card-value--network" id="tailscale-state">--</div>
+      <div class="card-sub" id="tailscale-sub">&nbsp;</div>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="resource-inspector">
+    <div class="inspector-tabs">
+      <span class="inspector-title" id="resource-inspector-title">--</span>
+      <button type="button" id="resource-inspector-close" class="btn btn-secondary inspector-close" data-i18n="common.close">close</button>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="resource-inspector-table">
+        <thead id="resource-inspector-thead"></thead>
+        <tbody id="resource-inspector-tbody">
+          <tr><td class="empty-row" data-i18n="common.loading">loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h3 data-i18n="overview.history.title">History</h3>
+      <select id="history-range" class="history-range-select">
+        <option value="24" data-i18n="overview.history.range24h">last 24h</option>
+        <option value="168" data-i18n="overview.history.range7d">last 7 days</option>
+      </select>
+    </div>
+    <div class="cards-grid" id="history-charts">
+      <div class="card card--cpu">
+        <div class="card-title" data-i18n="common.cpu">CPU</div>
+        <canvas id="chart-history-cpu" class="sparkline" height="40"></canvas>
+      </div>
+      <div class="card card--temp">
+        <div class="card-title" data-i18n="common.temperature">Temperature</div>
+        <canvas id="chart-history-temp" class="sparkline" height="40"></canvas>
+      </div>
+      <div class="card card--mem">
+        <div class="card-title" data-i18n="common.ram">RAM</div>
+        <canvas id="chart-history-mem" class="sparkline" height="40"></canvas>
+      </div>
+      <div class="card card--internet">
+        <div class="card-title" data-i18n="overview.internet.title">Internet</div>
+        <canvas id="chart-history-internet" class="sparkline" height="40"></canvas>
+        <div class="card-sub" id="history-internet-sub">&nbsp;</div>
+      </div>
+    </div>
+    <p class="card-sub" id="history-empty-note" data-i18n="overview.history.emptyNote">not enough samples yet - builds up while the dashboard stays open</p>
+  </section>
+
+  <section class="panel">
+    <h3 data-i18n="overview.load.title">Load Average</h3>
+    <div class="load-row">
+      <div class="load-item"><span class="load-label" data-i18n="overview.load.min1">1 min</span><span id="load1" class="load-value">--</span></div>
+      <div class="load-item"><span class="load-label" data-i18n="overview.load.min5">5 min</span><span id="load5" class="load-value">--</span></div>
+      <div class="load-item"><span class="load-label" data-i18n="overview.load.min15">15 min</span><span id="load15" class="load-value">--</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 data-i18n="overview.system.title">System</h3>
+    <table class="kv-table">
+      <tbody>
+        <tr><th data-i18n="overview.system.hostname">Hostname</th><td id="sys-hostname">--</td></tr>
+        <tr><th data-i18n="overview.system.os">Operating System</th><td id="sys-os">--</td></tr>
+        <tr><th data-i18n="overview.system.kernel">Kernel</th><td id="sys-kernel">--</td></tr>
+        <tr><th data-i18n="overview.system.arch">Architecture</th><td id="sys-arch">--</td></tr>
+        <tr><th data-i18n="overview.system.cpus">CPUs</th><td id="sys-cpus">--</td></tr>
+        <tr><th data-i18n="overview.system.memTotal">Total memory</th><td id="sys-mem-total">--</td></tr>
+        <tr><th data-i18n="overview.system.uptime">Uptime</th><td id="sys-uptime">--</td></tr>
+        <tr>
+          <th data-i18n="overview.system.updates">Updates</th>
+          <td>
+            <span id="sys-updates">--</span>
+            <button type="button" id="updates-list-toggle" class="btn btn-secondary hidden ml-2" data-i18n="common.viewList">view list</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="updates-list-box" class="job-history hidden"></div>
+    <div class="job-form-row">
+      <button type="button" id="reboot-pi-btn" class="btn btn-remove" data-i18n="overview.system.rebootBtn">Reboot Pi</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 data-i18n="overview.storage.title">Storage</h3>
+    <div class="table-scroll">
+      <table class="data-table" id="storage-table">
+        <thead>
+          <tr>
+            <th data-i18n="overview.storage.path">Path</th>
+            <th data-i18n="overview.storage.total">Total</th>
+            <th data-i18n="overview.storage.used">Used</th>
+            <th data-i18n="overview.storage.available">Available</th>
+            <th data-i18n="overview.storage.usage">Usage</th>
+          </tr>
+        </thead>
+        <tbody id="storage-body">
+          <tr><td colspan="5" class="empty-row" data-i18n="common.loading">loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="smart-panel">
+    <h3 data-i18n="overview.smart.title">Disk health (SMART)</h3>
+    <div id="smart-devices"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h3 data-i18n="overview.docker.title">Docker</h3>
+      <a href="#docker" class="btn-link" data-i18n="common.manageArrow">manage →</a>
+    </div>
+    <div id="overview-docker-error" class="banner-error hidden"></div>
+    <div class="table-scroll">
+      <table class="data-table" id="docker-table">
+        <thead>
+          <tr>
+            <th data-i18n="overview.docker.name">Name</th>
+            <th data-i18n="overview.docker.image">Image</th>
+            <th data-i18n="overview.docker.state">State</th>
+            <th data-i18n="overview.docker.status">Status</th>
+            <th data-i18n="common.cpu">CPU</th>
+            <th data-i18n="common.memory">Memory</th>
+            <th>PIDs</th>
+          </tr>
+        </thead>
+        <tbody id="docker-body">
+          <tr><td colspan="7" class="empty-row" data-i18n="common.loading">loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 data-i18n="overview.miner.title">Miner</h3>
+    <div id="miner-body">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>

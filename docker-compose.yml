@@ -1,0 +1,200 @@
+services:
+  pi-dashboard-api:
+    build: ./api
+    container_name: pi-dashboard-api
+    restart: unless-stopped
+    read_only: true
+    # Shares the host's PID namespace - the one thing this container needed
+    # that docker.sock + the read-only /proc mounts below didn't already
+    # cover. features/system/network.js reads /host/proc/1/net/dev (PID 1 = host
+    # init, always in the host's root network namespace) to get real
+    # host-wide network throughput - /proc/net/* is resolved per the
+    # READING process's own network namespace no matter which directory
+    # it's bind-mounted from, so without pid: host this container could
+    # only ever see its own tiny internal veth traffic (confirmed by hand).
+    # The privilege this actually costs: visibility into every host
+    # process's name/cmdline/resource usage (not control - ptrace/kill
+    # still require matching privilege) - on top of what docker.sock
+    # already grants (which is closer to host-root anyway).
+    pid: host
+    tmpfs:
+      - /tmp
+    environment:
+      - PORT=3000
+      - MINER_CONTAINER_NAME=bitcoin-miner
+      - MINER_LOG_POLL_INTERVAL_MS=20000
+      # Used by the `docker` CLI (features/compose/run.js) so it has
+      # somewhere writable to keep its config - points at the /tmp tmpfs
+      # below, since the root filesystem is read_only.
+      - HOME=/tmp
+      - DOCKER_CONFIG=/tmp/.docker
+      # Where features/compose/registry.js persists new project
+      # registrations - must match the bind mount for
+      # docker-compose.override.yml below exactly. ${PWD} (Compose
+      # interpolates this from the directory `docker compose` is run
+      # from) rather than a hardcoded path, so this works from any clone
+      # location on any host - just always run `docker compose` from this
+      # project's own root, same as the rest of the instructions assume.
+      - COMPOSE_OVERRIDE_FILE=${PWD}/docker-compose.override.yml
+      # App-owned SQLite database (lib/db.js) lives on the named volume
+      # below, not /tmp - unlike /tmp this survives container recreation (a
+      # rebuild would otherwise silently wipe the scheduler's jobs). Today
+      # this holds scheduler jobs/run history, sessions, audit log, and
+      # more - meant as the general home for whatever this app needs to
+      # persist.
+      - APP_DATA_DIR=/data
+      # Backups (features/backups/actions.js): where per-project data/
+      # tarballs land. Mounted read-write from the touro drive - see the
+      # volumes comment below for why it's a dedicated subfolder, not the
+      # whole drive.
+      - BACKUP_ROOT=/backups
+      # Login credentials (features/auth/credentials.js) - checked against
+      # whatever's POSTed to /api/auth/login. Set a real
+      # BASIC_AUTH_PASSWORD in .env; without one, that module refuses every
+      # login attempt (fails closed, not open).
+      - BASIC_AUTH_USER=${BASIC_AUTH_USER:-admin}
+      - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD:-}
+      # Notifications (Telegram - features/notifications/store.js): key
+      # used to encrypt the bot token and each route's chat id at rest
+      # (AES-256-GCM, lib/crypto/secret-box.js) - without it, saving these
+      # settings fails (fail closed, never stores plaintext). Generate one
+      # with `openssl rand -hex 32` and never change it once notifications
+      # are configured: changing it makes everything already saved
+      # permanently unreadable, no recovery (same "no recovery" rule
+      # already used for the login password).
+      - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY:-}
+    volumes:
+      # Host /proc, /sys, /etc and filesystems: read-only, used only to read
+      # metrics (cpu, memory, load, temperature, disk usage, hostname/os).
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/rootfs:ro
+      - /mnt/touro:/host/mnt/touro:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /etc/hostname:/host/etc/hostname:ro
+      # Docker socket: read-write, needed by the management page's
+      # start/stop/restart/recreate actions (api/src/features/docker/lifecycle.js).
+      # Those actions refuse to touch pi-dashboard-api/pi-dashboard-web
+      # themselves. The dashboard does have its own login (see Authentication
+      # in docs/ARCHITECTURE.md), but nothing beyond that session cookie
+      # stands between a logged-in session and full control of every other
+      # container on this host through this socket - no per-action
+      # confirmation, no second factor. Keep the login private and don't
+      # expose this port beyond a trusted network.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # This one file is the ONLY part of pi-dashboard's own project mounted
+      # into this container - deliberately, so the docker-compose
+      # management UI can persist new project registrations
+      # (registerProject/unregisterProject in features/compose/registry.js)
+      # without this container getting broader access to its own source
+      # tree. It is entirely generated/owned by that code (see the header
+      # it writes into the file) and is where EVERY compose-managed
+      # project's bind mounts live. Nothing project-specific belongs
+      # directly in THIS file, to avoid ever double-mounting the same path
+      # from both files at once. Compose auto-loads
+      # docker-compose.override.yml alongside docker-compose.yml with no -f
+      # flag needed, as long as it's physically present next to this file -
+      # which is why the mount below uses the real host path (matching
+      # COMPOSE_OVERRIDE_FILE above), not some other location. The file
+      # must already exist (even empty) before the first `docker compose
+      # up` - Docker creates a directory instead of a file at a bind-mount
+      # target that doesn't exist yet, which would break every write to it
+      # afterward (see INSTALL.md's `touch docker-compose.override.yml`
+      # step).
+      - ${PWD}/docker-compose.override.yml:${PWD}/docker-compose.override.yml
+      # Backup destination: only this subfolder of the touro drive is
+      # read-write, not the drive itself (which stays :ro above, for
+      # metrics only) - same narrow-mount approach as everything else here.
+      # Created on the host the first time a backup runs if it doesn't
+      # exist yet.
+      - /mnt/touro/backups:/backups
+      # App-owned SQLite database (lib/db.js - scheduler jobs/run history and more)
+      # - a named Docker volume, not a host bind mount, since this is pure
+      # internal app data with no reason to be a specific host path (unlike
+      # everything else mounted above, which all point at real host
+      # files/dirs other tools also touch).
+      - pi-dashboard-data:/data
+      # Status exporters written by the host-status/check-*.py scripts (apt
+      # updates, Tailscale, SMART, host crontab/systemd timers) - read-only
+      # view of whatever JSON each one last wrote, on whatever schedule its
+      # own crontab entry runs (not a systemd timer - see any of those
+      # scripts' own header for why: this pattern assumes no passwordless
+      # sudo, so a plain user crontab entry that needs none is preferred
+      # over anything requiring root). ${PWD}, not a hardcoded path, same
+      # reasoning as COMPOSE_OVERRIDE_FILE above.
+      - ${PWD}/host-status:/host/pi-dashboard-status:ro
+    # Grants the non-root 'node' user permission to read the docker.sock
+    # group (docker group gid on the host). Adjust via .env if it differs
+    # from this host - check with `getent group docker`.
+    group_add:
+      - "${DOCKER_GID:-986}"
+    networks:
+      - pi-dashboard-net
+      # Cloudflare tunnel status (features/system/cloudflared.js): joins the
+      # cloudflared project's own network so it can reach
+      # http://cloudflared:20241/metrics by service name - cloudflared
+      # already exposes that on [::]:20241 with zero config changes on its
+      # side (confirmed via its own startup log). Real coupling this
+      # creates: this network is created BY the cloudflared project, not by
+      # this one (external: true below) - if that project is ever torn
+      # down (`docker compose down`), this container won't start again
+      # until it's brought back up. Accepted since cloudflared is already a
+      # stable, always-on service on this host.
+      - cloudflared_default
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  pi-dashboard-web:
+    build: ./web
+    container_name: pi-dashboard-web
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    ports:
+      # Only the frontend is published to the host. The API is reachable
+      # only from within the pi-dashboard-net network.
+      - "8080:8080"
+    depends_on:
+      pi-dashboard-api:
+        condition: service_healthy
+    networks:
+      - pi-dashboard-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+networks:
+  pi-dashboard-net:
+    driver: bridge
+  # Not created by this project - it belongs to whatever directory the
+  # cloudflared project itself lives in on this host (docker compose names
+  # a project's default network "<dir>_default").
+  # external: true tells Compose to just use it as-is, never try to create
+  # or manage it.
+  cloudflared_default:
+    external: true
+
+volumes:
+  # App-owned SQLite database (lib/db.js) - see the mount comment on
+  # pi-dashboard-api above.
+  pi-dashboard-data:

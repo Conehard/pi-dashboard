@@ -1,0 +1,54 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.docker">Docker</h2>
+    <span class="view-sub" data-i18n="docker.subtitle">start · stop · pause · restart · recreate · remove · logs · compose</span>
+  </header>
+
+  <section class="panel" id="maintenance-panel">
+    <h3 data-i18n="docker.maintenance.title">Maintenance</h3>
+    <div class="compose-toolbar">
+      <button type="button" id="prune-btn" class="btn btn-remove" data-i18n="docker.maintenance.pruneBtn">Clean up unused images</button>
+    </div>
+    <p class="registry-hint" data-i18n-html="docker.maintenance.hint">Removes Docker images not used by any container (equivalent to <code>docker image prune -a</code>). Never touches volumes or containers.</p>
+  </section>
+
+  <section class="panel" id="registry-panel">
+    <h3 data-i18n="docker.registry.title">docker-compose projects</h3>
+    <div id="registry-restart-banner" class="banner-warn hidden" data-i18n-html="docker.registry.restartBanner">
+      There's a pending restart change to apply. Run
+      <code>docker compose up -d --build</code> in <code>~/Projects/infra/pi-dashboard</code>
+      on the host (or ask Claude to run it).
+    </div>
+    <div id="registry-pending-list" class="registry-pending hidden"></div>
+    <form id="registry-form" class="registry-form">
+      <input type="text" id="registry-name" data-i18n-placeholder="docker.registry.namePlaceholder" placeholder="name (e.g. my-app)" autocomplete="off" required>
+      <input type="text" id="registry-path" data-i18n-placeholder="docker.registry.pathPlaceholder" placeholder="/absolute/path/on/host" autocomplete="off" required>
+      <button type="submit" class="btn btn-start" data-i18n="docker.registry.submitBtn">Register project</button>
+    </form>
+    <p class="registry-hint" data-i18n-html="docker.registry.hint">The directory needs a file named exactly <code>docker-compose.yml</code>. Registering only records the intent - the project only shows up below and becomes manageable after a dashboard restart.</p>
+    <div id="registry-error" class="banner-error hidden"></div>
+  </section>
+
+  <div id="docker-error" class="banner-error hidden"></div>
+  <div id="projects-container">
+    <p class="empty-row" data-i18n="common.loading">loading…</p>
+  </div>
+
+  <section class="panel hidden" id="inspector-panel">
+    <div class="inspector-tabs">
+      <button type="button" class="tab-btn active" data-tab="logs" data-i18n="common.logs">Logs</button>
+      <button type="button" class="tab-btn" data-tab="details" data-i18n="common.details">Details</button>
+      <span class="inspector-title">· <span id="inspector-name">--</span></span>
+      <button type="button" id="inspector-close" class="btn btn-secondary inspector-close" data-i18n="common.close">close</button>
+    </div>
+
+    <div id="tab-logs" class="tab-body">
+      <div class="logs-toolbar">
+        <label><input type="checkbox" id="logs-autoscroll" checked> <span data-i18n="docker.inspector.autoscroll">autoscroll</span></label>
+      </div>
+      <pre id="logs-view" class="logs-view"></pre>
+    </div>
+
+    <div id="tab-details" class="tab-body hidden">
+      <dl id="details-body" class="details-list"></dl>
+    </div>
+  </section>

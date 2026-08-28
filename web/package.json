@@ -1,0 +1,13 @@
+{
+  "name": "pi-dashboard-web-assets",
+  "private": true,
+  "type": "module",
+  "description": "Build-time only - compiles src/input.css (Tailwind) into style.css. Never runs at container runtime; nginx just serves the compiled output as a static file. \"type\": \"module\" here just tells Node's own tooling that src/**/*.js are ES modules (matches the <script type=\"module\"> they're loaded as in the browser, see auth.js) - has no effect on the Tailwind build itself.",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./style.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4",
+    "tailwindcss": "^4"
+  }
+}

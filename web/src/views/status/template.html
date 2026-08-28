@@ -1,0 +1,36 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.status">Status</h2>
+    <span class="view-sub" data-i18n="status.subtitle">external URL/service monitoring - this dashboard's own checker</span>
+  </header>
+
+  <section class="panel">
+    <h3 id="uptime-form-title" data-i18n="status.newTarget.title">New target</h3>
+    <form id="uptime-form" class="job-form">
+      <div class="job-form-row">
+        <input type="text" id="uptime-name" data-i18n-placeholder="status.namePlaceholder" placeholder="name (e.g. Site X)" autocomplete="off" required>
+      </div>
+      <div class="job-form-row">
+        <select id="uptime-check-type">
+          <option value="http">HTTP(S)</option>
+          <option value="tcp">TCP</option>
+        </select>
+        <input type="text" id="uptime-target" data-i18n-placeholder="status.targetPlaceholderHttp" placeholder="https://example.com" autocomplete="off" required>
+        <input type="number" id="uptime-expected-status" data-i18n-placeholder="status.expectedStatusPlaceholder" placeholder="expected status (optional)" min="100" max="599">
+      </div>
+      <div class="job-form-row">
+        <input type="number" id="uptime-interval" data-i18n-placeholder="status.intervalPlaceholder" placeholder="interval (seconds)" min="15" max="86400" value="60">
+        <button type="button" class="btn btn-secondary" data-interval-preset="30">30s</button>
+        <button type="button" class="btn btn-secondary" data-interval-preset="60">1 min</button>
+        <button type="button" class="btn btn-secondary" data-interval-preset="300">5 min</button>
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" id="uptime-form-submit" data-i18n="status.addBtn">Add target</button>
+        <button type="button" class="btn btn-secondary hidden" id="uptime-form-cancel" data-i18n="status.cancelEditBtn">Cancel edit</button>
+      </div>
+    </form>
+    <div id="uptime-form-error" class="banner-error hidden"></div>
+  </section>
+
+  <div id="uptime-targets-container">
+    <p class="empty-row" data-i18n="common.loading">loading…</p>
+  </div>

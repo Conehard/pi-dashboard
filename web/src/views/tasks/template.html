@@ -1,0 +1,47 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.tasks">Tasks</h2>
+    <span class="view-sub" data-i18n="tasks.subtitle">the dashboard's own scheduler - doesn't touch the host's cron/systemd</span>
+  </header>
+
+  <section class="panel">
+    <h3 data-i18n="tasks.newJob.title">New job</h3>
+    <form id="job-form" class="job-form">
+      <div class="job-form-row">
+        <input type="text" id="job-name" data-i18n-placeholder="tasks.newJob.namePlaceholder" placeholder="name (e.g. Backup uptime-kuma)" autocomplete="off" required>
+      </div>
+      <div class="job-form-row">
+        <select id="job-action-type">
+          <option value="compose-update" data-i18n="tasks.action.composeUpdate">Update project (pull + up)</option>
+          <option value="backup" data-i18n="tasks.action.backup">Back up project</option>
+          <option value="self-backup" data-i18n="tasks.action.selfBackup">Back up the dashboard (pi-dashboard)</option>
+          <option value="docker-prune" data-i18n="docker.maintenance.pruneBtn">Clean up unused images</option>
+        </select>
+        <select id="job-project"></select>
+        <input type="number" id="job-retention" class="job-retention hidden" data-i18n-placeholder="tasks.retentionPlaceholder" placeholder="retention (days)" min="0">
+      </div>
+      <div class="job-form-row">
+        <input type="text" id="job-schedule" data-i18n-placeholder="tasks.schedulePlaceholder" placeholder="cron expression (e.g. 0 3 * * *)" autocomplete="off" required>
+        <button type="button" class="btn btn-secondary" data-preset="0 3 * * *" data-i18n="tasks.preset.daily3h">daily 3am</button>
+        <button type="button" class="btn btn-secondary" data-preset="0 * * * *" data-i18n="tasks.preset.hourly">hourly</button>
+        <button type="button" class="btn btn-secondary" data-preset="0 3 * * 0" data-i18n="tasks.preset.weekly">weekly (Sun 3am)</button>
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" data-i18n="tasks.createBtn">Create job</button>
+      </div>
+    </form>
+    <div id="job-form-error" class="banner-error hidden"></div>
+  </section>
+
+  <div id="jobs-container">
+    <p class="empty-row" data-i18n="common.loading">loading…</p>
+  </div>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h3 data-i18n="tasks.hostSchedule.title">Host schedule</h3>
+      <span class="settings-panel-hint" data-i18n="tasks.hostSchedule.hint">the user's crontab + systemd timers - read-only, not editable here</span>
+    </div>
+    <div id="host-schedule-container">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>

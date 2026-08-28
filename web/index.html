@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi Dashboard</title>
+  <link rel="stylesheet" href="style.css?v=__ASSET_VERSION__">
+</head>
+<body>
+  <div id="setup-screen" class="auth-screen hidden">
+    <form id="setup-form" class="login-card">
+      <div class="brand login-brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>Pi Dashboard</h1>
+      </div>
+      <p class="login-intro" data-i18n="auth.setup.intro">Primeiro acesso — crie o login do painel.</p>
+
+      <label class="login-field">
+        <span class="login-field-label" data-i18n="auth.field.username">Usuário</span>
+        <input type="text" id="setup-username" autocomplete="username" value="admin" required autofocus>
+      </label>
+
+      <label class="login-field">
+        <span class="login-field-label" data-i18n="auth.field.password">Senha</span>
+        <div class="login-password-row">
+          <input type="password" id="setup-password" autocomplete="new-password" required minlength="8">
+          <button type="button" id="setup-reveal-btn" class="login-reveal-btn" data-i18n="common.show">mostrar</button>
+        </div>
+      </label>
+
+      <label class="login-field">
+        <span class="login-field-label" data-i18n="auth.field.confirmPassword">Confirmar senha</span>
+        <input type="password" id="setup-password-confirm" autocomplete="new-password" required minlength="8">
+      </label>
+
+      <div class="login-generate-row">
+        <button type="button" id="setup-generate-btn" class="btn btn-secondary" data-i18n="auth.setup.generateBtn">🎲 Gerar senha forte</button>
+        <button type="button" id="setup-copy-btn" class="btn-link hidden" data-i18n="auth.setup.copyBtn">copiar senha</button>
+      </div>
+
+      <button type="submit" class="btn btn-start login-submit" data-i18n="auth.setup.submit">Criar login</button>
+      <div id="setup-error" class="banner-error hidden"></div>
+    </form>
+  </div>
+
+  <div id="login-screen" class="auth-screen hidden">
+    <form id="login-form" class="login-card">
+      <div class="brand login-brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>Pi Dashboard</h1>
+      </div>
+      <label class="login-field">
+        <span class="login-field-label" data-i18n="auth.field.username">Usuário</span>
+        <input type="text" id="login-username" autocomplete="username" required autofocus>
+      </label>
+      <label class="login-field">
+        <span class="login-field-label" data-i18n="auth.field.password">Senha</span>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn btn-start login-submit" data-i18n="auth.login.submit">Entrar</button>
+      <div id="login-error" class="banner-error hidden"></div>
+    </form>
+  </div>
+
+  <div class="app-shell hidden" id="app-shell">
+    <div class="sidebar-backdrop hidden" id="sidebar-backdrop"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="flex items-start justify-between gap-2">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <h1>Pi Dashboard</h1>
+          </div>
+          <button type="button" id="sidebar-close-btn" class="sidebar-toggle" data-i18n-aria-label="common.closeMenu" aria-label="Fechar menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <span class="hostname" id="sidebar-hostname">--</span>
+      </div>
+
+      <nav class="sidebar-nav-primary">
+        <a href="#overview" data-view="overview" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-8 4 16 2-8h6"/></svg>
+          <span data-i18n="nav.overview">Visão Geral</span>
+        </a>
+        <a href="#docker" data-view="docker" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          <span data-i18n="nav.docker">Docker</span>
+        </a>
+        <a href="#tasks" data-view="tasks" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 15.5"/></svg>
+          <span data-i18n="nav.tasks">Tarefas</span>
+        </a>
+        <a href="#status" data-view="status" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 7 4-14 2 7h4"/></svg>
+          <span data-i18n="nav.status">Status</span>
+        </a>
+        <a href="#internet" data-view="internet" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span data-i18n="nav.internet">Internet</span>
+        </a>
+        <a href="#settings" data-view="settings" class="nav-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg>
+          <span data-i18n="nav.settings">Configurações</span>
+        </a>
+      </nav>
+
+      <nav class="sidebar-nav-projects hidden" id="project-nav" data-i18n-aria-label="nav.projectsAriaLabel" aria-label="Projetos docker-compose"></nav>
+
+      <div class="sidebar-footer">
+        <div class="conn-status">
+          <span id="conn-dot" class="dot dot-unknown"></span>
+          <span id="conn-label" data-i18n="common.connecting">conectando…</span>
+        </div>
+        <span class="sidebar-footnote" id="last-update">--</span>
+        <button type="button" id="logout-btn" class="btn-link logout-link" data-i18n="common.logout">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="mobile-topbar">
+        <button type="button" id="sidebar-open-btn" class="sidebar-toggle" data-i18n-aria-label="common.openMenu" aria-label="Abrir menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <h1>Pi Dashboard</h1>
+        </div>
+      </div>
+
+      <div id="action-banner" class="banner-error hidden"></div>
+      <div id="action-ok" class="banner-ok hidden"></div>
+
+      <pd-view-overview class="view" id="view-overview" data-view-section="overview"></pd-view-overview>
+
+      <pd-view-docker class="view hidden" id="view-docker" data-view-section="docker"></pd-view-docker>
+
+      <pd-view-tasks class="view hidden" id="view-tasks" data-view-section="tasks"></pd-view-tasks>
+
+      <pd-view-status class="view hidden" id="view-status" data-view-section="status"></pd-view-status>
+
+      <pd-view-internet class="view hidden" id="view-internet" data-view-section="internet"></pd-view-internet>
+
+      <pd-view-settings class="view hidden" id="view-settings" data-view-section="settings"></pd-view-settings>
+    </main>
+  </div>
+
+  <script type="module" src="auth.js?v=__ASSET_VERSION__"></script>
+</body>
+</html>

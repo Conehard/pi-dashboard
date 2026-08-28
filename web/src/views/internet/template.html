@@ -1,0 +1,73 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.internet">Internet</h2>
+    <span class="view-sub" data-i18n="internet.subtitle">detailed connection monitoring · updates every 2s</span>
+  </header>
+
+  <section class="panel">
+    <h3 data-i18n="internet.now.title">Now</h3>
+    <div class="job-status-row">
+      <span class="dot dot-unknown" id="internet-now-dot"></span>
+      <span class="card-sub" id="internet-now-state">--</span>
+    </div>
+    <div class="miner-grid">
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.ping">Ping</span>
+        <span class="value" id="internet-now-ping">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.avgLatency">Average latency (5min)</span>
+        <span class="value" id="internet-now-avg-latency">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.jitter">Jitter</span>
+        <span class="value" id="internet-now-jitter">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.loss">Packet loss</span>
+        <span class="value" id="internet-now-loss">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.download">Download</span>
+        <span class="value" id="internet-now-download">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.upload">Upload</span>
+        <span class="value" id="internet-now-upload">--</span>
+      </div>
+      <div class="miner-item">
+        <span class="label" data-i18n="internet.now.speedTestedAt">Last speed test</span>
+        <span class="value" id="internet-now-speed-tested-at">--</span>
+      </div>
+    </div>
+    <div class="job-form-row">
+      <button type="button" id="internet-speedtest-btn" class="btn btn-secondary" data-i18n="internet.now.speedTestBtn">Test speed now</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 data-i18n="internet.recent.title">Recent checks</h3>
+    <p class="card-sub" data-i18n="internet.recent.subtitle">last ~5 minutes · one check every 10s</p>
+    <div id="internet-recent-bar"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h3 data-i18n="internet.history.title">History</h3>
+      <select id="internet-history-range" class="history-range-select">
+        <option value="24" data-i18n="overview.history.range24h">last 24h</option>
+        <option value="168" data-i18n="overview.history.range7d">last 7 days</option>
+      </select>
+    </div>
+    <div class="cards-grid">
+      <div class="card card--internet">
+        <div class="card-title" data-i18n="internet.history.latency">Latency</div>
+        <canvas id="internet-chart-latency" class="sparkline" height="40"></canvas>
+      </div>
+      <div class="card card--internet">
+        <div class="card-title" data-i18n="internet.history.availability">Availability</div>
+        <canvas id="internet-chart-availability" class="sparkline" height="40"></canvas>
+        <div class="card-sub" id="internet-history-uptime-sub">&nbsp;</div>
+      </div>
+    </div>
+    <p class="card-sub" id="internet-history-empty-note" data-i18n="overview.history.emptyNote">not enough samples yet - builds up while the dashboard stays open</p>
+  </section>
