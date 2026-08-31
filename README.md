@@ -2,6 +2,9 @@
 
 Admin dashboard for a home-lab server (built for a Raspberry Pi, runs on any Linux + Docker host). One page, no heavy dependencies — no Grafana/Prometheus/InfluxDB, just its own SQLite database.
 
+<img width="1692" height="995" alt="image" src="https://github.com/user-attachments/assets/39f4625c-a3c5-4609-a04e-b797dc3e64fc" />
+
+
 ## Features
 
 - **Overview** — CPU, RAM, temperature, uptime, storage and network traffic at a glance, with drill-down into what's actually consuming each resource; one-click host reboot.
