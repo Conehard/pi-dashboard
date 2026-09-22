@@ -53,7 +53,7 @@
   "err.noContainerForProject": "Nenhum container encontrado para o projeto \"{project}\".",
   "err.imagePullFailed": "Falha ao baixar a imagem \"{image}\": {error}",
   "err.recreateFailed": "A imagem \"{image}\" foi baixada, mas recriar o container falhou: {error}. O container pode ter ficado removido - verifique com \"docker ps -a\" no host.",
-  "err.pruneFailed": "Falha ao limpar imagens: {error}",
+  "err.pruneFailed": "Falha ao limpar imagens/cache de build: {error}",
   "err.rebootFailed": "Falha ao reiniciar o host: {error}",
 
   "err.uptimeCheckTypeInvalid": "\"checkType\" precisa ser \"http\" ou \"tcp\".",

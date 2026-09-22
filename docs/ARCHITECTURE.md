@@ -182,7 +182,7 @@ docker-compose management (see the section below - only works for the projects i
 
 Maintenance:
 
-- `POST /api/docker/prune` - removes every Docker image not referenced by any container (equivalent to `docker image prune -a`). Never touches volumes/containers.
+- `POST /api/docker/prune` - removes every Docker image not referenced by any container and the whole build cache (equivalent to `docker image prune -a` + `docker builder prune -a`, the latter repeated until a pass frees nothing - see `features/docker/project.js`). Returns `{ imagesDeleted, buildCacheBytes, spaceReclaimedBytes }`. Never touches volumes/containers. Can take minutes (nginx allows 900s).
 
 Host (read-only, see [Optional host integrations](#optional-host-integrations)):
 
@@ -362,7 +362,7 @@ Each compose-managed project's panel (Docker screen) has a **Backup now** and **
 A "visual cron" that belongs only to the dashboard - it **never** reads or writes the host's crontab or systemd timers. Only schedules actions the API already knows how to do:
 
 - **Update project (`compose-update`)** - `docker compose pull` followed by `up -d --remove-orphans` on the chosen project (the same function used by the manual Pull/Up buttons).
-- **Prune unused images (`docker-prune`)** - same action as the "Limpar imagens não usadas"/Prune unused images button on the Docker screen.
+- **Clean up images and build cache (`docker-prune`)** - same action as the "Limpar imagens e cache de build"/Clean up unused images and build cache button on the Docker screen. The build cache is what fills the SD card over time (every `docker compose up --build` adds to it and Docker never cleans it on its own - it had reached ~38GB on this host), so a weekly job with this action is recommended.
 - **Backup a project (`backup`)** - same action as the "Backup now" button, with optional retention.
 - **Backup the dashboard (`self-backup`)** - same action as the "Backup now" button under Settings → Dashboard backup (see [Backups](#backups)), with optional retention.
 

@@ -154,10 +154,10 @@
 
   "docker.subtitle": "start · stop · pause · restart · recreate · remove · logs · compose",
   "docker.maintenance.title": "Maintenance",
-  "docker.maintenance.pruneBtn": "Clean up unused images",
+  "docker.maintenance.pruneBtn": "Clean up unused images and build cache",
   "docker.maintenance.pruning": "cleaning…",
-  "docker.maintenance.hint": "Removes Docker images not used by any container (equivalent to <code>docker image prune -a</code>). Never touches volumes or containers.",
-  "docker.maintenance.confirmPrune": "Remove all Docker images not used by any container? Volumes and containers aren't affected.",
+  "docker.maintenance.hint": "Removes Docker images not used by any container and the whole build cache (equivalent to <code>docker image prune -a</code> + <code>docker builder prune -a</code>). The cache is what takes up the most space - the only cost is that each project's next build starts from scratch. Never touches volumes or containers. May take a few minutes.",
+  "docker.maintenance.confirmPrune": "Remove all unused Docker images and the whole build cache? Volumes and containers aren't affected; each project's next build will take longer.",
   "docker.maintenance.pruneResult": "{count} image(s) removed, {size} freed.",
   "docker.maintenance.pruneFailed": "Failed to clean up images: {error}",
   "docker.registry.title": "docker-compose projects",

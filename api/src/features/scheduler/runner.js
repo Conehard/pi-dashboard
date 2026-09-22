@@ -72,7 +72,7 @@ async function runJobAction (job) {
       if (!ok) errorMessage = `pull/up saíram com código ${pullCode}/${upCode}`
     } else if (job.action.type === 'docker-prune') {
       const result = await pruneImages()
-      onLine(`${result.imagesDeleted} imagem(ns) removida(s), ${result.spaceReclaimedBytes} bytes liberados`)
+      onLine(`${result.imagesDeleted} imagem(ns) removida(s), ${result.buildCacheBytes} bytes de cache de build, ${result.spaceReclaimedBytes} bytes liberados no total`)
     } else if (job.action.type === 'backup') {
       const result = await runBackup(job.action.project, { retentionDays: job.action.retentionDays })
       if (result.skipped) {
