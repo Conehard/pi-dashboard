@@ -123,6 +123,25 @@ services:
       # over anything requiring root). ${PWD}, not a hardcoded path, same
       # reasoning as COMPOSE_OVERRIDE_FILE above.
       - ${PWD}/host-status:/host/pi-dashboard-status:ro
+      # File manager (#files screen - api/src/features/files/files.js): read-write, unlike the
+      # metrics-only :ro mounts above. The one internal root is the host user's home (${HOME} - so
+      # always run `docker compose` as that user, not via sudo, or this becomes /root). External disks
+      # are whatever is mounted under host /mnt and /media: files.js lists each real mount point in there
+      # as its own disk. rslave propagation is what makes a disk mounted on the host AFTER this
+      # container started show up here too (plain bind mounts are a snapshot - the new disk would be an
+      # empty folder until a restart). Files are read/written as this container's user (uid 1000, same
+      # as the host user), so anything root-owned stays untouchable from the UI.
+      - ${HOME}:/host/files/home
+      - type: bind
+        source: /mnt
+        target: /host/files/mnt
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /media
+        target: /host/files/media
+        bind:
+          propagation: rslave
     # Grants the non-root 'node' user permission to read the docker.sock
     # group (docker group gid on the host). Adjust via .env if it differs
     # from this host - check with `getent group docker`.

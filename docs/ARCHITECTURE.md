@@ -2,7 +2,7 @@
 
 > To install, see [INSTALL.md](../INSTALL.md). For a quick overview, see the [README](../README.md) - this file documents how each part works internally, in depth.
 
-Admin dashboard for a home-lab mini server running on a Raspberry Pi, with no heavy dependencies (no Grafana/Prometheus/InfluxDB - just the dashboard's own SQLite). It's a single-page SPA (`index.html` + the native ES modules in `web/src/` - no JS framework/bundler, the JS that runs in the browser is always plain; the only build step is compiling the CSS via Tailwind, see [Styling (Tailwind)](#styling-tailwind)) with six screens swapped by hash route (`#overview`/`#docker`/`#tasks`/`#status`/`#internet`/`#settings`, no reload, no new tab). The on-screen labels are in Portuguese (the UI itself wasn't translated - only this documentation and the code comments were): **Visão Geral**/Overview (read-only - CPU/RAM/temperature/uptime/traffic/internet cards, the first three plus the internet card clickable/linked to see more), **Docker** (containers + docker-compose projects + backups), **Tarefas**/Tasks (the dashboard's own scheduler), **Status** (monitoring of external URLs/services - see [Status (Uptime)](#status-uptime)), **Internet** (deep-dive on the connectivity check behind the Overview card - see [Internet connectivity](#internet-connectivity)), and **Configurações**/Settings (Overview cards, login, Telegram notifications). Protected by login (its own screen, persistent session) - see [Authentication](#authentication).
+Admin dashboard for a home-lab mini server running on a Raspberry Pi, with no heavy dependencies (no Grafana/Prometheus/InfluxDB - just the dashboard's own SQLite). It's a single-page SPA (`index.html` + the native ES modules in `web/src/` - no JS framework/bundler, the JS that runs in the browser is always plain; the only build step is compiling the CSS via Tailwind, see [Styling (Tailwind)](#styling-tailwind)) with eight screens swapped by hash route (`#overview`/`#docker`/`#tasks`/`#status`/`#internet`/`#files`/`#tuya`/`#settings`, no reload, no new tab). The frontend has its own working i18n system (`core/i18n.js` + `web/src/i18n/{en,pt}.json`, `data-i18n*` attributes, a language switch in Settings) - Portuguese is the default and the screen names below are given in Portuguese, but every label is also available in English: **Visão Geral**/Overview (read-only - CPU/RAM/temperature/uptime/traffic/internet cards, the first three plus the internet card clickable/linked to see more), **Docker** (containers + docker-compose projects + backups), **Tarefas**/Tasks (the dashboard's own scheduler), **Status** (monitoring of external URLs/services - see [Status (Uptime)](#status-uptime)), **Internet** (deep-dive on the connectivity check behind the Overview card - see [Internet connectivity](#internet-connectivity)), **Arquivos**/Files (file manager for the internal storage and connected disks - see [File manager](#file-manager)), **Tuya** (smart-device management - see [Tuya devices](#tuya-devices)), and **Configurações**/Settings (Overview cards, login, Telegram notifications, Tuya credentials). Protected by login (its own screen, persistent session) - see [Authentication](#authentication).
 
 ## Architecture
 
@@ -82,6 +82,9 @@ services:
 - `#docker` → Docker.
 - `#tasks` → Tasks.
 - `#status` → Status (monitoring of external URLs/services - see [Status (Uptime)](#status-uptime)).
+- `#internet` → Internet (see [Internet connectivity](#internet-connectivity)).
+- `#files` → Files (see [File manager](#file-manager)).
+- `#tuya` → Tuya (see [Tuya devices](#tuya-devices)).
 - `#settings` → Settings.
 - any other hash (e.g. `#project-cloudflared`, used by the project sidebar links) doesn't switch screens on its own - it only switches to Docker if it starts with `project-`, and otherwise lets the browser scroll to the element with that id normally (a plain anchor).
 
@@ -216,6 +219,28 @@ Status/Uptime (see [Status (Uptime)](#status-uptime) below):
 - `PUT /api/uptime/targets/:id` - updates any subset of the same fields.
 - `DELETE /api/uptime/targets/:id` - removes the target (and its check history, via `ON DELETE CASCADE`).
 - `GET /api/uptime/targets/:id/history?limit=200` - most recent checks for that target, newest first (up to 500).
+
+File manager (see [File manager](#file-manager) below) - every endpoint addresses things as `root` (a disk id from `/roots`) + `path` (relative to it, `""` = the disk's top level), never an absolute host path:
+
+- `GET /api/files/roots` - `[{ id, label, kind: "internal"|"external", totalBytes, availableBytes }]`.
+- `GET /api/files/list?root=&path=` - `{ path, entries: [{ name, type: "dir"|"file"|"other", symlink, sizeBytes, modifiedAt, open: "inline"|"text"|null }] }`, folders first.
+- `GET /api/files/download?root=&path=&inline=1` - streams the file (Range supported). Without `inline`, always an attachment; with it, only browser-safe types are served inline (`open` above), always with `X-Content-Type-Options: nosniff` and (except PDFs) `Content-Security-Policy: sandbox`.
+- `PUT /api/files/upload?root=&path=&name=&overwrite=1` - raw request body = the file (not multipart), `Content-Type: application/octet-stream`. 409 if `name` exists and `overwrite` isn't set.
+- `POST /api/files/mkdir` - body `{ root, path, name }`.
+- `POST /api/files/rename` - body `{ root, path, newName }`.
+- `POST /api/files/move` - body `{ items: [{ root, path }], destRoot, destPath }` - works across disks (copy + delete).
+- `POST /api/files/delete` - body `{ items: [{ root, path }] }` - permanent, recursive for folders.
+
+Tuya (see [Tuya devices](#tuya-devices) below):
+
+- `GET /api/tuya/status` - `{ configured, region, clientIdPreview, configuredAt, regions, deviceCount }`. `regions` is the full list of valid data centers (from `features/tuya/cloud.js`'s `REGIONS`), never the secret.
+- `POST /api/tuya/config` - body `{ clientId, clientSecret, region }`. Validates against a real Tuya Cloud API call before saving. Unlike the Telegram bot token, this doesn't require the current password - there's only one dashboard user and the session is already authenticated, so it would just be friction with no real second factor behind it.
+- `DELETE /api/tuya/config` - body `{ currentPassword }`. Also unregisters every device (their `local_key`s belong to the account being removed).
+- `POST /api/tuya/sync` - discovers devices under the linked Tuya app account, fetches each one's DPS schema, upserts into `tuya_devices`. Returns `{ added, updated, total }`.
+- `GET /api/tuya/devices?includeHidden=1` - registered devices merged with the poller's live DPS cache (`dps`, `dpsUpdatedAt`).
+- `POST /api/tuya/devices/:id/command` - body `{ code, value }` or `{ commands: [{ code, value }, ...] }` - one generic endpoint for every DPS, always via the Cloud API (see [Tuya devices](#tuya-devices) for why never local).
+- `PUT /api/tuya/devices/:id` - body `{ name?, hidden? }`, local-only (doesn't call Tuya).
+- `DELETE /api/tuya/devices/:id` - unregisters locally (doesn't touch the Tuya account/app).
 
 The frontend polls `/api/system` every 2 seconds via `fetch`, without reloading the page. The small in-card sparkline charts (CPU, temperature, RAM) show only the last ~5 minutes, in browser memory, and are lost on reload - the separate "History" chart (24h/7d, `GET /api/metrics/history`, CPU/temperature/RAM/Internet) is what covers the longer window, persisted in SQLite.
 
@@ -383,6 +408,120 @@ Monitoring of **external URLs/services** - not containers (that's already covere
 
 **Alerts**: every state transition (ok → failing, failing → ok) fires the `uptime_down` event in [Notifications](#notifications-telegram) - configure that route to receive it on Telegram. Same debounce as the other triggers: only on the transition, never on every check while it stays in the same state, and never on the very first check of a newly created target (that one only sets the initial state).
 
+## File manager
+
+`#files` screen - browse, open, download, upload, rename, move and delete files on the host's disks
+(`api/src/features/files/files.js`, `web/src/views/files/`).
+
+- **Disks ("roots").** One internal root - the host user's home (`${HOME}`, on the SD card), mounted
+  read-write at `/host/files/home` - plus one external root per real mount point under host `/mnt` and
+  `/media` (mounted at `/host/files/mnt`/`/host/files/media`), discovered from `/proc/self/mountinfo` on
+  every request. Those two mounts use `rslave` propagation, so a disk mounted on the host after the
+  container started shows up without a restart. Plain folders under `/mnt` with no disk mounted on them
+  are deliberately not listed - they live on the SD card.
+- **Path safety.** Every path is normalized (no climbing above the root with `..`) and then resolved with
+  `realpath` and checked to still be inside its root, so a symlink pointing elsewhere (e.g. to `/etc`) is
+  refused (403). Rename/move/delete act on the entry itself (a symlink, not its target). A disk's root
+  itself can't be renamed/moved/deleted.
+- **Permissions.** The API runs as uid 1000 (same as the host user), so root-owned files stay read-only
+  from here - the UI shows a permission error instead.
+- **Uploads** stream straight to a hidden temp file (`.pd-upload-*`) in the destination folder and are
+  renamed into place only when complete - a cancelled upload never leaves a partial file under the real
+  name. nginx's `/api/files/` location has no body size limit and buffering off in both directions
+  (`/var/cache/nginx` is a RAM tmpfs), and the API's `server.requestTimeout` is disabled so long uploads
+  aren't cut off at Node's 5-minute default.
+- **Move across disks** falls back from `rename` to copy + delete (source removed only after the copy
+  fully succeeded).
+- **Open** opens images/video/audio/PDF in a new tab as themselves and text-like files as plain text; an
+  uploaded `.html`/`.svg` can never run script with the dashboard's session (see the `download` endpoint).
+- Every change is recorded in the audit log (`files.mkdir`/`upload`/`rename`/`move`/`delete`).
+- Not supported (yet): uploading whole folders, downloading a folder as an archive, copy (only move),
+  a trash/undo - delete is permanent.
+
+## Tuya devices
+
+Management of Tuya-ecosystem smart devices (sockets, switches, lights, sensors, cameras, Zigbee
+sub-devices behind a gateway, and anything else exposed through the Tuya Cloud API) - `#tuya` screen,
+plus a "Tuya" panel in Settings for the account connection. Unlike the rest of the dashboard, this
+feature genuinely needs an outside account: a free [Tuya IoT Platform](https://iot.tuya.com) "Cloud
+Development" project, with the Tuya Smart/Smart Life app account that actually has the devices linked to
+it (Cloud → Development → your project → Devices → Link Tuya App Account) - see `INSTALL.md` for the
+exact console steps, they're not obvious and two of Tuya's own error messages during setup pointed at
+the wrong cause (see below).
+
+**Hybrid cloud/local, but not the split you'd expect**: the original plan was "local for both reads and
+writes, cloud only as a fallback" - the actual Tuya Cloud API never exposes the numeric index
+(`{"1": true}`) the LAN protocol addresses a data point by, only its human `code` (`switch_led`), and
+guessing that index risks tripping the wrong function on a physical device. So instead: **all control
+goes through the Cloud API** (`POST /api/tuya/devices/:id/command`, addresses DPS by `code`, always
+correct), and the LAN side (`features/tuya/local.js`) is used only for a fast, free, internet-independent
+**reachability check** - `TuyAPI#connect()` succeeding is "online", nothing more. A device's actual DPS
+*values* always come from the Cloud API too, but a different call: `GET
+/v1.0/iot-03/devices/status?device_ids=...` (`features/tuya/cloud.js`'s `getBulkStatus`) returns every
+registered device's current state in **one request**, regardless of how many devices there are (up to 20
+per page, auto-paginated beyond that) - this is what actually keeps the feature inside Tuya's free-tier
+rate limits, not the LAN side.
+
+**Background poller** (`features/tuya/poller.js`, started with every other poller in `server.js`), two
+independent cadences:
+
+- **Local tick** (`TUYA_LOCAL_POLL_INTERVAL_MS`, default 20s) - `local.js`'s `probe()` for every device
+  that has a `local_key` and isn't a camera (Tuya smart cameras don't answer the classic LAN protocol at
+  all - confirmed empirically, not documented anywhere). Writes `online`/`ip`/`protocol_version` to
+  `tuya_devices` for those devices only.
+- **Cloud tick** (`TUYA_CLOUD_POLL_INTERVAL_MS`, default 60s) - one `getBulkStatus` call refreshes every
+  registered device's DPS values into an in-memory cache (`poller.getCachedDps`, not persisted - it
+  changes too often to be worth a table), plus one `GET /v2.0/cloud/thing/batch` call (`is_online`) that
+  supplies the online flag **only** for devices the local tick can't reach itself (cameras, Zigbee
+  sub-devices - they never have their own `local_key` to probe with).
+
+**Why a Zigbee sub-device's "online" flag looks pessimistic**: a door/window sensor or the temperature
+sensor sleeps between reports to save battery, so Tuya's cloud `is_online` reads `false` for it most of
+the time even though its last reported value is completely current. `#tuya` doesn't show a flat
+online/offline dot for these - it shows "data updated {when}" with a freshness-based dot instead (see
+`views/tuya/view.js`'s `statusInfo()`), so a sleeping sensor doesn't read as a broken one.
+
+**Setup flow**: Settings → "Tuya" panel → Client ID/Client Secret/data center region (validated against
+a real Cloud API token request before saving, same as the Telegram bot token) → "Sync devices now"
+(`POST /api/tuya/sync`) discovers every device under the linked app account, fetches each one's DPS
+schema (`GET /v1.0/iot-03/devices/{id}/specification`), and upserts it into `tuya_devices`. Re-running
+sync later only refreshes name/category/`local_key`/schema - it never touches the poller's own runtime
+columns (`ip`/`online`/`protocol_version`), so a sync running at the same moment as a poll tick can't
+clobber it.
+
+**Device cards** (`#tuya`, grouped by category) are entirely schema-driven - nothing here is hardcoded
+per device or category: a `Boolean` function becomes the same `.switch` toggle used elsewhere in the
+dashboard, an `Integer` with `min`/`max` becomes a range slider (scale/unit-aware), an `Enum` with a
+`range` becomes a `<select>`, and anything else becomes a plain text field with an explicit Send button -
+so a device type this codebase has never seen still gets a usable, if generic, control instead of being
+hidden. DPS present in a device's `status` but not its `functions` (sensor readings, energy metrics)
+render as read-only info chips under "Readings". Two small dictionaries (`DP_LABELS`/`CATEGORY_LABELS`
+in `view.js`) turn a handful of well-known Tuya codes into plain-English labels, falling back to a
+Title-Cased version of the raw code for anything not listed - deliberately **not** routed through the
+`en.json`/`pt.json` i18n system, since these describe vendor-defined device data (closer to a
+container's environment variable name than to actual app UI), and Tuya has far too many product
+categories for a translated dictionary to ever be complete.
+
+**A command's UI doesn't refetch immediately** after succeeding - the cloud poll cache can be up to
+~60s stale right after a real change, so an immediate refetch would just flash back to the pre-command
+value and look like the click failed. The control keeps showing what the user just set until the next
+natural poll tick confirms it; a *failed* command does revert the control and shows an error.
+
+**Removing the account** (Settings → "Tuya" → Remove) unregisters every device too - their `local_key`s
+belong to the account being removed, and a re-sync after reconnecting rebuilds the list anyway.
+Unregistering a single device (its own "Unregister" button) is local-only either way - it never touches
+the real Tuya account/app, sync brings it back if it's still linked there.
+
+**Setup pitfalls actually hit while building this** (Tuya's own error messages point at the wrong
+cause): a `28841107`/"data center is suspended" error from any real device-list call almost always means
+the Tuya **app account was never linked** to the Cloud Development project (Devices → Link Tuya App
+Account) - it is *not* about the IoT Core service subscription despite what the error text implies (that
+can already show "In service" and the error still happens). And the account's app-account link has to
+target the **exact data center the app account itself is registered in** (for Brazil and the rest of
+South America, that's "Western America") - picking the wrong one during that link step, not the wrong
+region string in `POST /api/tuya/config`, is the more likely failure if credentials otherwise validate
+fine in every region (token issuance doesn't seem to validate region at all, only real device calls do).
+
 ## Database (SQLite)
 
 `api/src/lib/db.js` opens (and creates, if it doesn't exist) a SQLite database at `APP_DATA_DIR/pi-dashboard.db` (`/data`, the named Docker volume `pi-dashboard-data` - not a bind mount, not `/tmp`: it needs to survive `docker compose up -d --build`, which `/tmp` doesn't). `journal_mode = WAL` and `foreign_keys = ON` are turned on at open. The volume is created empty on first boot with the right owner (`node:node`) because `api/Dockerfile` already creates `/data` with that owner before switching to `USER node` - a new volume inherits the ownership of whatever already exists at that path in the image.
@@ -398,6 +537,8 @@ Tables today:
 - `uptime_targets` / `uptime_checks` - monitored targets and check history (pruned to the last 30 days per target). See [Status (Uptime)](#status-uptime).
 - `audit_log` - the last 500 actions that changed some state (container, compose, backup, credentials, notifications, uptime target, job), with when/what/target/detail. Doesn't store who - login is a single shared user, there's no way to know. See the "Log de auditoria"/Audit log panel in [Settings](#settings).
 - `metrics_history` - CPU/RAM/temperature samples for the Overview's "History" chart (up to 7 days, one sample every ~1min). See [API Endpoints](#api-endpoints-via-nginx-proxy).
+- `tuya_config` - the linked Tuya Cloud API account (Client ID, encrypted Client Secret, data center region), a single row (`id = 1`). See [Tuya devices](#tuya-devices).
+- `tuya_devices` - registered Tuya devices (name, category, encrypted `local_key`, last known LAN IP/protocol version, cached DPS schema, online/last-seen). See [Tuya devices](#tuya-devices).
 
 Meant as the general place for anything the application needs to store - it isn't exclusive to the scheduler, that was just the first thing to use it.
 
@@ -446,7 +587,7 @@ pi-dashboard/
 │       ├── routes/          (one file per resource, each an express.Router())
 │       │   ├── auth.routes.js, system.routes.js, host.routes.js, docker.routes.js,
 │       │   └── compose.routes.js, scheduler.routes.js, backups.routes.js, audit.routes.js,
-│       │       notifications.routes.js, uptime.routes.js
+│       │       notifications.routes.js, uptime.routes.js, tuya.routes.js
 │       └── features/        (domain logic - each router above calls into one of these; every
 │           │                 folder here past ~200 lines is split by concern, not one file each)
 │           ├── auth/                        (credentials.js: login/password · sessions.js: cookie
@@ -463,6 +604,9 @@ pi-dashboard/
 │           │                                dispatch.js: notify(eventType,...) · retry-queue.js: backoff resend)
 │           ├── uptime/                     (targets.js: uptime_targets table · checks.js:
 │           │                                uptime_checks table · checker.js: HTTP/TCP poller)
+│           ├── tuya/                       (cloud.js: Tuya Cloud API client · local.js: LAN
+│           │                                reachability probe · poller.js: local+cloud pollers ·
+│           │                                store.js: tuya_config/tuya_devices tables - see Tuya devices)
 │           ├── audit/audit.js
 │           └── system/                     (host metric readers - system, storage, network,
 │               internet, processes, miner, health-watch, history-store, apt-updates, cloudflared,
@@ -478,8 +622,9 @@ pi-dashboard/
     └── src/
         ├── input.css        (Tailwind source - design tokens + @layer components, see Styling)
         ├── app.js            (entry point - native ES modules, no bundler: imports and starts each view)
-        ├── core/              (format.js/dom.js/router.js/charts.js - helpers shared across views)
-        └── views/              (overview/docker/tasks/status/internet/settings - one folder per
+        ├── i18n/               (en.json/pt.json - frontend translation dictionaries, see Frontend)
+        ├── core/              (format.js/dom.js/router.js/charts.js/i18n.js - helpers shared across views)
+        └── views/              (overview/docker/tasks/status/internet/tuya/settings - one folder per
                                    screen, each with view.js (custom element + logic) and
                                    template.html (its markup, fetched at mount time))
 ```

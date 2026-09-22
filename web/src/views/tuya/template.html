@@ -1,0 +1,60 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.tuya">Tuya</h2>
+    <span class="view-sub" data-i18n="tuya.subtitle">device management, via the Tuya Cloud API</span>
+  </header>
+
+  <section id="tuya-not-configured" class="panel hidden">
+    <h3 data-i18n="tuya.notConfigured.title">Tuya isn't connected yet</h3>
+    <p class="card-sub" data-i18n="tuya.notConfigured.body">Set up the Cloud API credentials in Settings to start managing devices.</p>
+    <a href="#settings" class="btn btn-secondary" data-i18n="tuya.notConfigured.settingsLink">Go to Settings →</a>
+  </section>
+
+  <div id="tuya-toolbar" class="job-form-row hidden tuya-toolbar">
+    <button type="button" class="btn btn-secondary" id="tuya-sync-btn" data-i18n="tuya.syncBtn">Sync devices</button>
+    <div class="tuya-toolbar-toggles">
+      <label class="tuya-toolbar-toggle">
+        <input type="checkbox" id="tuya-hide-offline" checked>
+        <span data-i18n="tuya.hideOffline">hide offline</span>
+      </label>
+      <label class="tuya-toolbar-toggle">
+        <input type="checkbox" id="tuya-show-hidden">
+        <span data-i18n="tuya.showHidden">show hidden</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="tuya-devices-container" class="hidden">
+    <p class="empty-row" data-i18n="common.loading">loading…</p>
+  </div>
+
+  <section id="tuya-automations-panel" class="panel hidden">
+    <h3 data-i18n="automations.title">Automations</h3>
+    <p class="card-sub" data-i18n="automations.subtitle">when a device's reading becomes something, do something else</p>
+
+    <form id="automation-form" class="job-form">
+      <div class="job-form-row">
+        <input type="text" id="automation-name" data-i18n-placeholder="automations.namePlaceholder" placeholder="rule name" autocomplete="off" required>
+      </div>
+      <div class="job-form-row">
+        <select id="automation-trigger-device" required>
+          <option value="" data-i18n="automations.selectDevice">select a device…</option>
+        </select>
+        <select id="automation-trigger-code" required disabled>
+          <option value="" data-i18n="automations.selectReading">select a reading…</option>
+        </select>
+        <span id="automation-trigger-value-wrap"></span>
+      </div>
+      <div id="automation-actions-list"></div>
+      <div class="job-form-row">
+        <button type="button" class="btn btn-secondary" id="automation-add-action-btn" data-i18n="automations.addActionBtn">+ add action</button>
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" data-i18n="automations.addBtn">Add rule</button>
+      </div>
+    </form>
+    <div id="automation-form-error" class="banner-error hidden"></div>
+
+    <div id="automation-rules-list" style="margin-top: 14px;">
+      <p class="empty-row" data-i18n="common.loading">loading…</p>
+    </div>
+  </section>

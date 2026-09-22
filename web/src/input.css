@@ -758,6 +758,296 @@
     @apply w-[90px] flex-none;
   }
 
+  /* Reusable modal (core/modal.js) - not Tuya-specific, but Tuya's device details is its first user. */
+  .pd-modal {
+    @apply bg-surface-panel border border-line rounded-card p-0 text-ink;
+    width: min(560px, calc(100vw - 32px));
+    max-height: min(82vh, 720px);
+    /* A <dialog> shown via showModal() is centered by the UA stylesheet's `margin: auto` on
+       `dialog:modal` - but that only works as long as nothing else sets its margin. Tailwind's
+       Preflight resets margin to 0 on every element (a `*` rule, so it never shows up as a `dialog`-
+       specific rule to grep for), which silently wins over the browser default and left this
+       uncentered - explicit margin here isn't optional styling, it's the actual centering mechanism. */
+    margin: auto;
+  }
+
+  .pd-modal::backdrop {
+    background: rgb(0 0 0 / 0.55);
+  }
+
+  .pd-modal-header {
+    @apply flex items-center justify-between gap-3 px-5 py-3.5 border-b border-line;
+  }
+
+  .pd-modal-header h3 {
+    @apply text-[15px] font-semibold m-0 truncate;
+  }
+
+  .pd-modal-close {
+    @apply text-ink-dim text-2xl leading-none cursor-pointer bg-transparent border-none p-1 shrink-0;
+  }
+
+  .pd-modal-close:hover {
+    @apply text-ink;
+  }
+
+  .pd-modal-body {
+    @apply px-5 py-4 overflow-y-auto;
+    max-height: calc(min(82vh, 720px) - 56px);
+  }
+
+  /* File manager screen (views/files/) - disk cards on top, then one panel with the folder listing. */
+  .files-roots {
+    @apply grid gap-3 mb-4;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .files-root-card {
+    @apply bg-surface-card border border-line rounded-card px-4 py-3 text-left text-ink cursor-pointer flex flex-col gap-2 transition-colors duration-[120ms];
+  }
+
+  .files-root-card:hover {
+    @apply border-brand;
+  }
+
+  .files-root-card.active {
+    @apply border-brand bg-brand-soft;
+  }
+
+  .files-root-title {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .files-root-name {
+    @apply font-semibold truncate;
+  }
+
+  .files-root-bar {
+    @apply w-full m-0;
+  }
+
+  .files-panel {
+    @apply relative;
+  }
+
+  .files-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3 mb-3;
+  }
+
+  .files-toolbar-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .files-breadcrumb {
+    @apply flex flex-wrap items-center gap-1 min-w-0 text-[13px];
+  }
+
+  .files-crumb.current {
+    @apply font-semibold text-ink break-all;
+  }
+
+  .files-crumb.btn-link {
+    @apply bg-transparent border-none p-0 cursor-pointer text-[13px];
+  }
+
+  .files-crumb-sep {
+    @apply text-ink-faint;
+  }
+
+  .files-selection-bar {
+    @apply flex flex-wrap items-center gap-2 mb-3 py-2 px-3 rounded-field bg-brand-soft text-[13px];
+  }
+
+  .files-uploads {
+    @apply flex flex-col gap-1.5 mb-3;
+  }
+
+  .files-upload-row {
+    @apply flex flex-wrap items-center gap-2.5 text-[12.5px];
+  }
+
+  .files-upload-name {
+    @apply truncate max-w-[280px];
+  }
+
+  .files-table {
+    @apply min-w-[640px];
+  }
+
+  .files-check-col {
+    @apply w-8;
+  }
+
+  .files-row.selected td {
+    @apply bg-brand-soft;
+  }
+
+  .files-name {
+    @apply bg-transparent border-none p-0 text-ink text-left cursor-pointer break-all text-sm;
+  }
+
+  .files-name:hover {
+    @apply text-brand underline;
+  }
+
+  .files-dim {
+    @apply text-ink-dim whitespace-nowrap;
+  }
+
+  .files-drop-overlay {
+    @apply absolute inset-0 flex items-center justify-center rounded-card text-brand font-semibold pointer-events-none;
+    background: rgb(10 13 19 / 0.85);
+    border: 2px dashed var(--color-brand);
+  }
+
+  .files-picker {
+    @apply flex flex-col gap-2.5;
+  }
+
+  .files-picker-path {
+    @apply text-ink-dim text-[12.5px] font-mono break-all;
+  }
+
+  .files-picker-list {
+    @apply flex flex-col border border-line rounded-field overflow-y-auto max-h-[45vh];
+  }
+
+  .files-picker-item {
+    @apply bg-transparent text-ink text-left py-2 px-3 cursor-pointer text-[13px] break-all;
+    border: 0;
+    border-bottom: 1px solid var(--color-line-soft);
+  }
+
+  .files-picker-item:hover {
+    @apply bg-surface-card text-brand;
+  }
+
+  .files-picker-footer {
+    @apply flex justify-end gap-2;
+  }
+
+  /* Tuya devices screen (views/tuya/) - schema-driven controls, so these are generic enough to fit
+     whatever DPS a device declares (boolean/range/enum/free text), not tied to any specific device. */
+  .tuya-toolbar {
+    @apply items-center mb-3.5;
+  }
+
+  .tuya-toolbar-toggles {
+    @apply flex items-center gap-4 ml-auto;
+  }
+
+  .tuya-toolbar-toggle {
+    @apply flex items-center gap-1.5 text-[12.5px] text-ink-dim cursor-pointer;
+  }
+
+  .tuya-category-group {
+    @apply mb-1;
+  }
+
+  .tuya-category-heading {
+    @apply text-[13px] uppercase tracking-wide text-ink-faint font-semibold mt-5 mb-2.5;
+  }
+
+  .tuya-category-group:first-child .tuya-category-heading {
+    @apply mt-0;
+  }
+
+  /* 4-up grid of compact cards (Phase 11 + follow-up feedback) - was one full-width row per device,
+     now a real grid; each card is narrow, so it's a column (name/status on top, controls in a footer
+     row), not the wide single-row layout that made sense before. */
+  .tuya-device-grid {
+    @apply grid gap-3 mb-1;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .tuya-device-card {
+    @apply flex flex-col gap-2 mb-0 px-4 py-3.5;
+  }
+
+  .tuya-device-card-title {
+    @apply min-w-0;
+  }
+
+  .tuya-device-card-title h3 {
+    @apply text-[13.5px] font-semibold m-0 truncate;
+  }
+
+  .tuya-device-card-footer {
+    @apply flex items-center justify-between gap-2 mt-auto pt-1;
+  }
+
+  @media (max-width: 1100px) {
+    .tuya-device-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 820px) {
+    .tuya-device-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 520px) {
+    .tuya-device-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tuya-device-card-primary {
+    @apply p-0 border-none shrink-0;
+  }
+
+  .tuya-controls-title {
+    @apply mt-3.5;
+  }
+
+  .tuya-control-toggle {
+    @apply p-0 border-none;
+  }
+
+  .tuya-control-row {
+    @apply items-center;
+  }
+
+  .tuya-control-label {
+    @apply min-w-[120px];
+  }
+
+  .tuya-range {
+    @apply flex-1 min-w-[120px] accent-brand;
+  }
+
+  .tuya-readings {
+    @apply mt-3.5 pt-3.5 border-t border-line-soft;
+  }
+
+  .tuya-readings .state-badge {
+    @apply inline-block max-w-[220px] truncate align-bottom;
+  }
+
+  /* <details>/<summary> for the modal's "Advanced" section (Phase 11) - native, no JS needed to
+     collapse/expand. */
+  .tuya-advanced {
+    @apply mt-3.5;
+  }
+
+  .tuya-advanced summary {
+    @apply text-[12.5px] text-ink-dim cursor-pointer select-none;
+  }
+
+  .tuya-advanced[open] summary {
+    @apply mb-2.5;
+  }
+
+  .tuya-snapshot-img {
+    @apply block w-full rounded-lg mt-2.5 border border-line;
+  }
+
+  .tuya-snapshot-placeholder {
+    @apply text-[12.5px] text-ink-faint mt-2.5;
+  }
+
   .logs-toolbar {
     @apply flex items-center justify-between gap-3 mb-2.5 text-[13px] text-ink-dim;
   }

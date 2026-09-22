@@ -137,6 +137,48 @@
     </div>
   </section>
 
+  <section class="panel settings-panel" id="tuya-panel">
+    <div class="settings-panel-header">
+      <h3 data-i18n="settings.tuya.title">Tuya</h3>
+      <span class="settings-panel-hint" data-i18n="settings.tuya.hint">Cloud API credentials, only used for device discovery - control always goes straight to Tuya's cloud</span>
+    </div>
+
+    <div id="tuya-connected-status" class="job-status-row hidden">
+      <span class="state-badge state-running" id="tuya-connected-summary">connected</span>
+      <button type="button" class="btn btn-secondary" id="tuya-change-btn" data-i18n="settings.tuya.changeBtn">Change credentials</button>
+      <button type="button" class="btn btn-remove" id="tuya-remove-btn" data-i18n="settings.tuya.removeBtn">Remove</button>
+    </div>
+
+    <form id="tuya-config-form" class="job-form hidden">
+      <div class="login-field">
+        <label class="login-field-label" for="tuya-client-id" data-i18n="settings.tuya.clientIdLabel">Client ID</label>
+        <input type="text" id="tuya-client-id" autocomplete="off" required>
+      </div>
+      <div class="login-field">
+        <label class="login-field-label" for="tuya-client-secret" data-i18n="settings.tuya.clientSecretLabel">Client Secret</label>
+        <div class="login-password-row">
+          <input type="password" id="tuya-client-secret" autocomplete="off" required>
+          <button type="button" class="login-reveal-btn" id="tuya-secret-reveal-btn" data-i18n="common.show">show</button>
+        </div>
+      </div>
+      <div class="login-field">
+        <label class="login-field-label" for="tuya-region" data-i18n="settings.tuya.regionLabel">Data center</label>
+        <select id="tuya-region" required>
+          <option value="" data-i18n="settings.tuya.regionPlaceholder">select a data center…</option>
+        </select>
+      </div>
+      <div class="job-form-row">
+        <button type="submit" class="btn btn-start" data-i18n="settings.tuya.saveBtn">Save</button>
+        <button type="button" class="btn btn-secondary hidden" id="tuya-cancel-btn" data-i18n="common.cancel">cancel</button>
+      </div>
+    </form>
+    <div id="tuya-config-error" class="banner-error hidden"></div>
+
+    <div id="tuya-sync-row" class="job-form-row hidden" style="margin-top: 14px;">
+      <button type="button" class="btn btn-secondary" id="tuya-settings-sync-btn" data-i18n="settings.tuya.syncBtn">Sync devices now</button>
+    </div>
+  </section>
+
   <section class="panel settings-panel" id="self-backup-panel">
     <div class="settings-panel-header">
       <h3 data-i18n="settings.selfBackup.title">Dashboard backup</h3>

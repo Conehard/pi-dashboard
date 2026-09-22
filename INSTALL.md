@@ -19,7 +19,7 @@ cp .env.example .env
 Edit `.env`:
 - `DOCKER_GID` - the host's `docker` group gid: `getent group docker`
 - `BASIC_AUTH_USER`/`BASIC_AUTH_PASSWORD` - leave `BASIC_AUTH_PASSWORD` blank (recommended); the first time you open the dashboard in a browser, a "first access" screen lets you create the login right there
-- `APP_ENCRYPTION_KEY` - only needed if you're going to configure Telegram notifications later (`openssl rand -hex 32`); can be left blank for now and generated later
+- `APP_ENCRYPTION_KEY` - only needed if you're going to configure Telegram notifications or Tuya devices later (`openssl rand -hex 32`); can be left blank for now and generated later
 
 ## 2. Create the (empty) project registry file
 
@@ -93,6 +93,40 @@ sudo visudo -c   # validate the file before trusting it
 ```
 
 After that, add the `check-smart-health.py` line to your crontab (above). The script detects on its own which host devices (`/dev/sda`, `/dev/mmcblk0`, etc. - edit the `DEVICES` list at the top of the script if yours are different) actually support SMART, and ignores the ones that don't (common on an SD card/eMMC).
+
+## 7. Tuya devices (optional)
+
+Lets the dashboard manage Tuya-ecosystem smart devices (sockets, switches, lights, sensors, cameras,
+etc. - see `docs/ARCHITECTURE.md`'s [Tuya devices](docs/ARCHITECTURE.md#tuya-devices) for how it works).
+Needs a **Tuya IoT Platform** account and a bit of one-time setup in Tuya's own console before anything
+in the dashboard itself:
+
+1. Create a free account at [iot.tuya.com](https://iot.tuya.com) and a **Cloud Development** project
+   (**Cloud** → **Development** → **Create Cloud Project**). Note the project's **Client ID** and
+   **Client Secret** (shown right after creation, or under the project's **Overview** tab afterward).
+2. **Link your Tuya Smart/Smart Life app account** to the project - this is the step that's easy to miss
+   and, if skipped, makes every device-related API call fail with a misleading `No permission. The data
+   center is suspended...` error (it's not actually about the IoT Core service subscription, even though
+   the error text implies that): open the project → **Devices** tab → **Link Tuya App Account** → **Add
+   App Account** → scan the QR code **with the phone that has your real devices in the Tuya Smart or
+   Smart Life app**.
+   - The QR flow asks you to pick a **data center** - it has to be the one your app account is actually
+     registered in, not just any one that seems close. For Brazil and the rest of South America, that's
+     **Western America**; if you're elsewhere, check
+     [Tuya's data center mapping](https://developer.tuya.com/en/docs/iot/oem-app-data-center-distributed)
+     first. Picking the wrong one here (not a wrong region string in the dashboard later) is the more
+     likely cause if credentials validate fine but no devices ever show up.
+   - Confirm your real devices show up under the **Devices** tab before moving on - if the list is
+     empty, the app-account link didn't actually pick up your devices; redo the QR step with the right
+     phone/account.
+3. In the dashboard: **Settings → Tuya** → enter the Client ID/Client Secret, pick the **same data
+   center** as step 2, enter your current dashboard password, **Save**. Then **Sync devices now**.
+4. Open the **Tuya** screen (sidebar) - your devices should be listed, grouped by type.
+
+No new port/volume/env var is needed for this - it's pure outbound HTTPS to Tuya's API, same as the
+Telegram notifications feature. The Client Secret and each device's `local_key` are encrypted at rest
+the same way the Telegram bot token is (`APP_ENCRYPTION_KEY` - see that variable's own note earlier in
+this file).
 
 ## Troubleshooting
 

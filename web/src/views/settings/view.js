@@ -172,6 +172,55 @@ async function fetchNotifStatus () {
   }
 }
 
+let tuyaEls = null
+let tuyaConfigured = false
+
+function setTuyaFormVisible (visible) {
+  tuyaEls.form.classList.toggle('hidden', !visible)
+  tuyaEls.cancelBtn.classList.toggle('hidden', !(visible && tuyaConfigured))
+  tuyaEls.error.classList.add('hidden')
+  if (!visible) tuyaEls.form.reset()
+}
+
+function populateTuyaRegions (regions, selected) {
+  const select = tuyaEls.region
+  const placeholder = select.querySelector('option[value=""]')
+  select.innerHTML = ''
+  if (placeholder) select.appendChild(placeholder)
+  regions.forEach((region) => {
+    const option = document.createElement('option')
+    option.value = region
+    option.textContent = region
+    if (region === selected) option.selected = true
+    select.appendChild(option)
+  })
+}
+
+async function fetchTuyaStatus () {
+  try {
+    const res = await fetch('/api/tuya/status')
+    const data = await res.json()
+    if (!data.ok) return
+
+    populateTuyaRegions(data.regions, data.region)
+
+    tuyaConfigured = data.configured
+    tuyaEls.connectedStatus.classList.toggle('hidden', !data.configured)
+    tuyaEls.syncRow.classList.toggle('hidden', !data.configured)
+    if (data.configured) {
+      tuyaEls.connectedSummary.textContent = t('settings.tuya.connectedStatus', {
+        region: data.region,
+        clientIdPreview: data.clientIdPreview,
+        count: data.deviceCount
+      })
+      setTuyaFormVisible(false)
+    } else {
+      setTuyaFormVisible(true)
+    }
+  } catch {
+  }
+}
+
 async function fetchSessions () {
   const box = document.getElementById('sessions-list')
   try {
@@ -387,7 +436,91 @@ function init () {
     }
   })
 
+  tuyaEls = {
+    connectedStatus: document.getElementById('tuya-connected-status'),
+    connectedSummary: document.getElementById('tuya-connected-summary'),
+    changeBtn: document.getElementById('tuya-change-btn'),
+    removeBtn: document.getElementById('tuya-remove-btn'),
+    form: document.getElementById('tuya-config-form'),
+    cancelBtn: document.getElementById('tuya-cancel-btn'),
+    clientIdInput: document.getElementById('tuya-client-id'),
+    clientSecretInput: document.getElementById('tuya-client-secret'),
+    secretRevealBtn: document.getElementById('tuya-secret-reveal-btn'),
+    region: document.getElementById('tuya-region'),
+    error: document.getElementById('tuya-config-error'),
+    syncRow: document.getElementById('tuya-sync-row'),
+    syncBtn: document.getElementById('tuya-settings-sync-btn')
+  }
+
+  tuyaEls.secretRevealBtn.addEventListener('click', () => {
+    const revealed = tuyaEls.clientSecretInput.type === 'text'
+    tuyaEls.clientSecretInput.type = revealed ? 'password' : 'text'
+    tuyaEls.secretRevealBtn.textContent = revealed ? t('common.show') : t('common.hide')
+  })
+
+  tuyaEls.changeBtn.addEventListener('click', () => setTuyaFormVisible(true))
+  tuyaEls.cancelBtn.addEventListener('click', () => setTuyaFormVisible(false))
+
+  tuyaEls.removeBtn.addEventListener('click', async () => {
+    if (!confirm(t('settings.tuya.confirmRemove'))) return
+    const currentPassword = prompt(t('settings.tuya.promptPassword'))
+    if (!currentPassword) return
+    try {
+      const res = await fetch('/api/tuya/config', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      showActionResult(true, t('settings.tuya.removedOk'))
+      fetchTuyaStatus()
+    } catch (err) {
+      showActionResult(false, err.message)
+    }
+  })
+
+  tuyaEls.form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    tuyaEls.error.classList.add('hidden')
+    const body = {
+      clientId: tuyaEls.clientIdInput.value.trim(),
+      clientSecret: tuyaEls.clientSecretInput.value.trim(),
+      region: tuyaEls.region.value
+    }
+    try {
+      const res = await fetch('/api/tuya/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      showActionResult(true, t('settings.tuya.connectedOk'))
+      fetchTuyaStatus()
+    } catch (err) {
+      tuyaEls.error.textContent = err.message
+      tuyaEls.error.classList.remove('hidden')
+    }
+  })
+
+  tuyaEls.syncBtn.addEventListener('click', async () => {
+    tuyaEls.syncBtn.disabled = true
+    try {
+      const res = await fetch('/api/tuya/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      showActionResult(true, t('settings.tuya.syncResult', data))
+      fetchTuyaStatus()
+    } catch (err) {
+      showActionResult(false, t('settings.tuya.syncFailed', { error: err.message }))
+    } finally {
+      tuyaEls.syncBtn.disabled = false
+    }
+  })
+
   fetchNotifStatus()
+  fetchTuyaStatus()
   fetchSessions()
   fetchAuditLog()
 
@@ -400,6 +533,7 @@ function init () {
 
   window.addEventListener('pd-lang-changed', () => {
     fetchNotifStatus()
+    fetchTuyaStatus()
     fetchSessions()
     fetchAuditLog()
   })
