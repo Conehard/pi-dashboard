@@ -75,10 +75,21 @@ export async function listTargets () {
 async function ownImage () {
   // A container's hostname defaults to its own short id - the name is only a fallback in case someone
   // set `hostname:` in compose.
+  // With the containerd image store, the container's .Image digest may not resolve as an image ref
+  // ("No such image") - fall back to the image name it was created from in that case.
   for (const ref of [os.hostname(), SELF_CONTAINER_NAME]) {
+    let info
     try {
-      return (await docker.getContainer(ref).inspect()).Image
-    } catch { }
+      info = await docker.getContainer(ref).inspect()
+    } catch {
+      continue
+    }
+    try {
+      await docker.getImage(info.Image).inspect()
+      return info.Image
+    } catch {
+      if (info.Config && info.Config.Image) return info.Config.Image
+    }
   }
   throw new ActionError('err.terminalNoImage', 500)
 }

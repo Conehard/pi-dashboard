@@ -50,7 +50,8 @@ COPY --from=css-build /build/node_modules/@xterm/xterm/lib/xterm.mjs /build/node
 # intends.
 USER root
 RUN sed -i "s/__ASSET_VERSION__/$(date +%Y%m%d%H%M%S)/g" \
-  /usr/share/nginx/html/index.html /usr/share/nginx/html/auth.js
+  /usr/share/nginx/html/index.html /usr/share/nginx/html/auth.js \
+  /usr/share/nginx/html/src/views/terminal/view.js
 USER nginx
 
 EXPOSE 8080

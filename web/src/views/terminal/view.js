@@ -68,11 +68,11 @@ function loadXterm () {
   if (!xtermLoad) {
     const css = document.createElement('link')
     css.rel = 'stylesheet'
-    css.href = '/vendor/xterm/xterm.css'
+    css.href = '/vendor/xterm/xterm.css?v=__ASSET_VERSION__'
     document.head.appendChild(css)
     xtermLoad = Promise.all([
-      import('/vendor/xterm/xterm.mjs'),
-      import('/vendor/xterm/addon-fit.mjs')
+      import('/vendor/xterm/xterm.mjs?v=__ASSET_VERSION__'),
+      import('/vendor/xterm/addon-fit.mjs?v=__ASSET_VERSION__')
     ]).catch((err) => {
       xtermLoad = null
       throw err
