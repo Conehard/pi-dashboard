@@ -2,7 +2,7 @@
 
 Admin dashboard for a home-lab server (built for a Raspberry Pi, runs on any Linux + Docker host). One page, no heavy dependencies — no Grafana/Prometheus/InfluxDB, just its own SQLite database.
 
-<img width="1706" height="992" alt="image" src="https://github.com/user-attachments/assets/ff6ec1d6-fc0b-4ec8-a1fd-68e63a24cc9b" />
+<img width="1707" height="991" alt="image" src="https://github.com/user-attachments/assets/2227cd24-741b-45ae-986f-a37e6642784a" />
 
 ## Features
 
