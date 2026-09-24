@@ -63,6 +63,13 @@ services:
       # permanently unreadable, no recovery (same "no recovery" rule
       # already used for the login password).
       - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY:-}
+      # Web terminal (#terminal screen - api/src/features/terminal/terminal.js): a shell on the host
+      # (via a short-lived privileged helper container + nsenter) or in any running container, all
+      # through docker.sock below - the same power that socket already grants, just interactive. Set
+      # TERMINAL_ENABLED=false in .env to turn it off entirely. TERMINAL_HOST_USER picks which host user
+      # the host shell logs in as (default: the owner of ${HOME}, mounted for the Files screen).
+      - TERMINAL_ENABLED=${TERMINAL_ENABLED:-true}
+      - TERMINAL_HOST_USER=${TERMINAL_HOST_USER:-}
     volumes:
       # Host /proc, /sys, /etc and filesystems: read-only, used only to read
       # metrics (cpu, memory, load, temperature, disk usage, hostname/os).

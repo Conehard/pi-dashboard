@@ -487,5 +487,24 @@
   "files.upload.done": "enviado ✓",
   "files.upload.skipped": "ignorado (já existia)",
   "files.upload.networkError": "falha de rede",
-  "files.foldersNotSupported": "Pastas não podem ser enviadas por arrastar - só arquivos. As pastas foram ignoradas."
+  "files.foldersNotSupported": "Pastas não podem ser enviadas por arrastar - só arquivos. As pastas foram ignoradas.",
+
+  "nav.terminal": "Terminal",
+  "terminal.subtitle": "shell no host ou dentro de um container em execução",
+  "terminal.targetAriaLabel": "Onde abrir o shell",
+  "terminal.refresh": "Atualizar lista",
+  "terminal.connectBtn": "Conectar",
+  "terminal.disconnectBtn": "Desconectar",
+  "terminal.hint": "O shell continua aberto enquanto você usa outras telas - só fecha ao clicar em Desconectar, ao sair do shell (exit) ou ao fechar esta aba.",
+  "terminal.target.host": "Host - {name}",
+  "terminal.target.container": "Container - {name}",
+  "terminal.status.idle": "desconectado",
+  "terminal.status.connecting": "conectando…",
+  "terminal.status.connected": "conectado: {name}",
+  "terminal.status.disconnected": "desconectado",
+  "terminal.status.exited": "o shell foi encerrado",
+  "terminal.status.failed": "não foi possível conectar",
+  "terminal.status.sessionExpired": "sessão expirada - faça login de novo",
+  "terminal.status.loadFailed": "Falha ao carregar o terminal: {error}",
+  "terminal.closedLine": "[conexão encerrada]"
 }

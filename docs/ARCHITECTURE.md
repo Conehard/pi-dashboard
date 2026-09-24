@@ -84,6 +84,7 @@ services:
 - `#status` → Status (monitoring of external URLs/services - see [Status (Uptime)](#status-uptime)).
 - `#internet` → Internet (see [Internet connectivity](#internet-connectivity)).
 - `#files` → Files (see [File manager](#file-manager)).
+- `#terminal` → Terminal (see [Web terminal](#web-terminal)).
 - `#tuya` → Tuya (see [Tuya devices](#tuya-devices)).
 - `#settings` → Settings.
 - any other hash (e.g. `#project-cloudflared`, used by the project sidebar links) doesn't switch screens on its own - it only switches to Docker if it starts with `project-`, and otherwise lets the browser scroll to the element with that id normally (a plain anchor).
@@ -230,6 +231,11 @@ File manager (see [File manager](#file-manager) below) - every endpoint addresse
 - `POST /api/files/rename` - body `{ root, path, newName }`.
 - `POST /api/files/move` - body `{ items: [{ root, path }], destRoot, destPath }` - works across disks (copy + delete).
 - `POST /api/files/delete` - body `{ items: [{ root, path }] }` - permanent, recursive for folders.
+
+Web terminal (see [Web terminal](#web-terminal) below):
+
+- `GET /api/terminal/targets` - `[{ id, kind: "host"|"container", name }]` - `host` first, then every running container.
+- `GET /api/terminal/ws?target=&cols=&rows=` (WebSocket) - an interactive shell on `target` (`host` or a container id). Server → browser: binary frames with the raw terminal output, plus JSON text frames `{ type: "ready", name }`/`{ type: "exit" }`/`{ type: "error", message }`. Browser → server: JSON text frames `{ type: "input", data }` and `{ type: "resize", cols, rows }`.
 
 Tuya (see [Tuya devices](#tuya-devices) below):
 
@@ -438,6 +444,37 @@ Monitoring of **external URLs/services** - not containers (that's already covere
 - Not supported (yet): uploading whole folders, downloading a folder as an archive, copy (only move),
   a trash/undo - delete is permanent.
 
+## Web terminal
+
+`#terminal` screen - an interactive shell (xterm.js) on the host or inside any running container
+(`api/src/features/terminal/terminal.js`, `api/src/routes/terminal.routes.js`, `web/src/views/terminal/`).
+
+- **Transport.** One WebSocket per open terminal (`/api/terminal/ws`), attached to the Node HTTP server's
+  `upgrade` event (not an Express route). nginx has a dedicated location for it passing
+  `Upgrade`/`Connection` through, with a 1h read timeout; the API pings every 30s so an idle shell never
+  hits it.
+- **Auth.** The same session cookie as every other endpoint, checked on the handshake and re-checked
+  every minute while open (logging out or revoking the session in Settings closes the terminal). Since
+  the cookie is `SameSite=lax` - still sent on a WebSocket from another port/subdomain of the same site -
+  the handshake is also refused unless its `Origin` matches the `Host` the dashboard was loaded from.
+- **Container shell** - a `docker exec` with a TTY (`bash` if the image has it, else `sh`), as the
+  container's default user.
+- **Host shell** - there's no SSH involved: the API starts a short-lived helper container from its own
+  image (nothing to pull) with `--privileged --pid=host --network=host`, which runs
+  `busybox nsenter -t 1 -m -u -i -n -p` (into every namespace of the host's init process) and then
+  `su -l <user>` - `<user>` being the owner of the home folder mounted for the Files screen (uid 1000 on
+  a standard Pi), or `TERMINAL_HOST_USER` if set. The helper (label `pi-dashboard.terminal`) is removed
+  when the terminal closes; leftovers from a crashed API are removed on its next start. You land as your
+  normal user, so admin work still goes through `sudo` like over SSH.
+- **Security.** This is the same power `docker.sock` already gives the API (see its mount comment in
+  `docker-compose.yml`) - made interactive, not new. It can be turned off completely with
+  `TERMINAL_ENABLED=false` in `.env` (the endpoints then answer 403). Every opened terminal is recorded in
+  the audit log (`terminal.open`); what's typed in it is not.
+- **Frontend.** `@xterm/xterm` + `@xterm/addon-fit` are regular npm dependencies of `web/`, copied as
+  plain ES modules into the image at `/vendor/xterm/` by `web/Dockerfile` (no CDN at runtime) and only
+  imported the first time `#terminal` is opened. The shell stays open while you switch screens; it closes
+  on Disconnect, on `exit`, or when the tab is closed.
+
 ## Tuya devices
 
 Management of Tuya-ecosystem smart devices (sockets, switches, lights, sensors, cameras, Zigbee
@@ -587,7 +624,8 @@ pi-dashboard/
 │       ├── routes/          (one file per resource, each an express.Router())
 │       │   ├── auth.routes.js, system.routes.js, host.routes.js, docker.routes.js,
 │       │   └── compose.routes.js, scheduler.routes.js, backups.routes.js, audit.routes.js,
-│       │       notifications.routes.js, uptime.routes.js, tuya.routes.js
+│       │       notifications.routes.js, uptime.routes.js, tuya.routes.js, files.routes.js,
+│       │       terminal.routes.js
 │       └── features/        (domain logic - each router above calls into one of these; every
 │           │                 folder here past ~200 lines is split by concern, not one file each)
 │           ├── auth/                        (credentials.js: login/password · sessions.js: cookie
@@ -607,6 +645,7 @@ pi-dashboard/
 │           ├── tuya/                       (cloud.js: Tuya Cloud API client · local.js: LAN
 │           │                                reachability probe · poller.js: local+cloud pollers ·
 │           │                                store.js: tuya_config/tuya_devices tables - see Tuya devices)
+│           ├── terminal/terminal.js        (host/container shells - see Web terminal)
 │           ├── audit/audit.js
 │           └── system/                     (host metric readers - system, storage, network,
 │               internet, processes, miner, health-watch, history-store, apt-updates, cloudflared,
@@ -624,7 +663,7 @@ pi-dashboard/
         ├── app.js            (entry point - native ES modules, no bundler: imports and starts each view)
         ├── i18n/               (en.json/pt.json - frontend translation dictionaries, see Frontend)
         ├── core/              (format.js/dom.js/router.js/charts.js/i18n.js - helpers shared across views)
-        └── views/              (overview/docker/tasks/status/internet/tuya/settings - one folder per
+        └── views/              (overview/docker/tasks/status/internet/files/terminal/tuya/settings - one folder per
                                    screen, each with view.js (custom element + logic) and
                                    template.html (its markup, fetched at mount time))
 ```

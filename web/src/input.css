@@ -826,6 +826,42 @@
     @apply w-full m-0;
   }
 
+  .terminal-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3 mb-3;
+  }
+
+  .terminal-toolbar-actions {
+    @apply flex flex-wrap items-center gap-2 min-w-0;
+  }
+
+  .terminal-target-select {
+    @apply bg-surface-card border border-line text-ink rounded-field py-[7px] px-2.5 text-[13px] font-sans max-w-full;
+  }
+
+  .terminal-target-select:focus {
+    @apply outline-none border-brand;
+  }
+
+  .terminal-status {
+    @apply text-[12.5px] text-ink-faint;
+  }
+
+  .terminal-status[data-state="ok"] { color: var(--color-ok); }
+  .terminal-status[data-state="error"] { color: var(--color-danger); }
+  .terminal-status[data-state="connecting"] { color: var(--color-warn); }
+
+  /* Fills the viewport below the header/toolbar; xterm's fit addon sizes the grid to this box. */
+  .terminal-screen {
+    @apply bg-surface border border-line-soft rounded-field p-2 overflow-hidden;
+    height: calc(100vh - 250px);
+    height: calc(100dvh - 250px);
+    min-height: 320px;
+  }
+
+  .terminal-hint {
+    @apply text-[12px] text-ink-faint mt-2.5 mb-0;
+  }
+
   .files-panel {
     @apply relative;
   }

@@ -7,6 +7,7 @@ import './views/tasks/view.js'
 import './views/status/view.js'
 import './views/internet/view.js'
 import './views/files/view.js'
+import './views/terminal/view.js'
 import './views/tuya/view.js'
 
 initRouter()

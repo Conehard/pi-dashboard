@@ -1,0 +1,19 @@
+  <header class="view-header">
+    <h2 data-i18n="nav.terminal">Terminal</h2>
+    <span class="view-sub" data-i18n="terminal.subtitle">shell on the host or inside a running container</span>
+  </header>
+
+  <section class="panel terminal-panel">
+    <div class="terminal-toolbar">
+      <div class="terminal-toolbar-actions">
+        <select id="terminal-target" class="terminal-target-select" data-i18n-aria-label="terminal.targetAriaLabel" aria-label="Where to open the shell"></select>
+        <button type="button" class="btn btn-details" id="terminal-refresh-btn" data-i18n-title="terminal.refresh" title="Refresh list">↻</button>
+        <button type="button" class="btn btn-start" id="terminal-connect-btn" data-i18n="terminal.connectBtn">Connect</button>
+        <button type="button" class="btn btn-remove hidden" id="terminal-disconnect-btn" data-i18n="terminal.disconnectBtn">Disconnect</button>
+      </div>
+      <span id="terminal-status" class="terminal-status"></span>
+    </div>
+
+    <div id="terminal-screen" class="terminal-screen"></div>
+    <p class="terminal-hint" data-i18n="terminal.hint">The shell keeps running while you use other screens - it only closes on Disconnect, on exit, or when this tab closes.</p>
+  </section>

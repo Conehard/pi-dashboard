@@ -1,4 +1,4 @@
-const VIEWS = ['overview', 'docker', 'tasks', 'status', 'internet', 'files', 'tuya', 'settings']
+const VIEWS = ['overview', 'docker', 'tasks', 'status', 'internet', 'files', 'terminal', 'tuya', 'settings']
 
 function showView (view) {
   document.querySelectorAll('.view').forEach((el) => {

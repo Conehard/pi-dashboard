@@ -487,5 +487,24 @@
   "files.upload.done": "uploaded ✓",
   "files.upload.skipped": "skipped (already existed)",
   "files.upload.networkError": "network error",
-  "files.foldersNotSupported": "Folders can't be uploaded by drag and drop - files only. The folders were skipped."
+  "files.foldersNotSupported": "Folders can't be uploaded by drag and drop - files only. The folders were skipped.",
+
+  "nav.terminal": "Terminal",
+  "terminal.subtitle": "shell on the host or inside a running container",
+  "terminal.targetAriaLabel": "Where to open the shell",
+  "terminal.refresh": "Refresh list",
+  "terminal.connectBtn": "Connect",
+  "terminal.disconnectBtn": "Disconnect",
+  "terminal.hint": "The shell keeps running while you use other screens - it only closes on Disconnect, when you exit it, or when this tab closes.",
+  "terminal.target.host": "Host - {name}",
+  "terminal.target.container": "Container - {name}",
+  "terminal.status.idle": "disconnected",
+  "terminal.status.connecting": "connecting…",
+  "terminal.status.connected": "connected: {name}",
+  "terminal.status.disconnected": "disconnected",
+  "terminal.status.exited": "the shell exited",
+  "terminal.status.failed": "couldn't connect",
+  "terminal.status.sessionExpired": "session expired - log in again",
+  "terminal.status.loadFailed": "Failed to load the terminal: {error}",
+  "terminal.closedLine": "[connection closed]"
 }

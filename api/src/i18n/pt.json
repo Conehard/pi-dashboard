@@ -101,5 +101,9 @@
   "err.filesMoveIntoItself": "Não dá pra mover \"{name}\" pra dentro dela mesma.",
   "err.filesNothingSelected": "Nenhum item selecionado.",
   "err.filesUploadAborted": "Envio cancelado antes de terminar.",
-  "err.filesOperationFailed": "Falha na operação: {error}"
+  "err.filesOperationFailed": "Falha na operação: {error}",
+
+  "err.terminalDisabled": "O terminal está desativado (TERMINAL_ENABLED=false).",
+  "err.terminalNoImage": "Não foi possível encontrar a imagem do próprio pi-dashboard-api para abrir o terminal do host.",
+  "err.terminalNotRunning": "Esse container não está rodando."
 }

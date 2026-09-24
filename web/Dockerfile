@@ -32,6 +32,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY index.html auth.js /usr/share/nginx/html/
 COPY src /usr/share/nginx/html/src
 COPY --from=css-build /build/style.css /usr/share/nginx/html/style.css
+# xterm.js for the Terminal screen (src/views/terminal/view.js) - installed by the `npm ci` above and
+# served as plain ES modules, so there's still no bundler and nothing loaded from a CDN at runtime.
+COPY --from=css-build /build/node_modules/@xterm/xterm/lib/xterm.mjs /build/node_modules/@xterm/xterm/css/xterm.css /build/node_modules/@xterm/addon-fit/lib/addon-fit.mjs /usr/share/nginx/html/vendor/xterm/
 
 # index.html/auth.js reference style.css and auth.js's own dynamic app.js
 # import with a __ASSET_VERSION__ placeholder (see the ?v= cache-busting

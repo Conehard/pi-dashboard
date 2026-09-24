@@ -16,6 +16,7 @@ import uptimeRoutes from './routes/uptime.routes.js'
 import tuyaRoutes from './routes/tuya.routes.js'
 import automationsRoutes from './routes/automations.routes.js'
 import filesRoutes from './routes/files.routes.js'
+import terminalRoutes, { attachTerminalWebSocket } from './routes/terminal.routes.js'
 
 import { cleanupExpiredSessions } from './features/auth/sessions.js'
 import { startScheduler } from './features/scheduler/runner.js'
@@ -28,6 +29,7 @@ import { startUptimeChecker } from './features/uptime/checker.js'
 import { startNotificationRetryPoller } from './features/notifications/retry-queue.js'
 import { startTuyaPoller } from './features/tuya/poller.js'
 import { startAutomationsEngine } from './features/automations/engine.js'
+import { cleanupOrphanHelpers } from './features/terminal/terminal.js'
 
 const log = createLogger('server')
 const app = express()
@@ -68,6 +70,7 @@ app.use('/api/uptime', uptimeRoutes)
 app.use('/api/tuya', tuyaRoutes)
 app.use('/api/automations', automationsRoutes)
 app.use('/api/files', filesRoutes)
+app.use('/api/terminal', terminalRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ error: 'not found' })
@@ -86,6 +89,7 @@ const server = app.listen(PORT, () => {
   startImageUpdateChecker()
   startTuyaPoller()
   startAutomationsEngine()
+  cleanupOrphanHelpers()
   startScheduler().catch((err) => log.error('failed to start scheduler', err.message))
   cleanupExpiredSessions()
   setInterval(cleanupExpiredSessions, 24 * 60 * 60 * 1000)
@@ -96,3 +100,7 @@ const server = app.listen(PORT, () => {
 // easily does. Disabled rather than just raised: this API is only reachable through the nginx
 // container (never published to the host), which already enforces its own per-read timeouts.
 server.requestTimeout = 0
+
+// Web terminal (routes/terminal.routes.js) - a WebSocket, so it's served off the raw HTTP upgrade
+// event rather than an Express route.
+attachTerminalWebSocket(server)

@@ -14,6 +14,7 @@ Admin dashboard for a home-lab server (built for a Raspberry Pi, runs on any Lin
 - **Notifications** — Telegram alerts for job failures, containers going down, disk thresholds, and uptime changes.
 - **Backups** — one-click backup/restore-file download for any registered project's data, with optional retention.
 - **Files** — a file manager for the internal storage (your home folder) and every disk mounted under `/mnt` or `/media` (USB disks plugged in later show up automatically): open, download, upload (drag and drop, any size), create folders, rename, move (across disks too) and delete.
+- **Terminal** — an interactive shell right in the browser, on the host itself (as your normal user) or inside any running container. Can be turned off with `TERMINAL_ENABLED=false`.
 - **Tuya** — control Tuya/Smart Life devices (sockets, lights, sensors, cameras…) through the Tuya Cloud API, plus simple automations ("when this sensor reads X, switch that device / send a Telegram message").
 - Own login (no default password shipped), sessions in SQLite, secrets encrypted at rest.
 
