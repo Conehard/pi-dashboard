@@ -41,6 +41,22 @@ Vanilla JS SPA (no framework/bundler) styled with Tailwind, served by nginx · N
 
 Architecture, every API endpoint, the auth flow, and the reasoning behind each design choice are documented in **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)**.
 
+
+## Support the project
+
+Pi Dashboard is free and open source. If you want
+to support its development, donations are welcome — never required.
+
+| Network | Address |
+| --- | --- |
+| Bitcoin (native SegWit) | `bc1q9sv0xgp9sqgsxpvuytny69jg2az3cj63xhlsqf` |
+| Solana | `HZMm9eAwJUdVtrPqGaREjNZd1wBiKToNVXCbGk949JFe` |
+| USDT (Tron / TRC-20) | `TGTJrkySXVrSaf3wHeWnTPCt7GJM3d6Rwy` |
+
+Please double-check the network before sending: funds sent on the wrong network can't be
+recovered. Starring the repository and sharing it also helps a lot.
+
+
 ## License
 
 [GPLv3](./LICENSE)
